@@ -78,7 +78,7 @@ private extension PreviewKeyboardView {
     var numberRowHeight: CGFloat {
         KeyboardHeightPolicy.numberRowHeight(
             isEnabled: showsNumberRow,
-            isPortrait: true,
+            usesPortraitHeight: true,
             keyboardSettingsHeight: keyboardSettingsHeight
         )
     }

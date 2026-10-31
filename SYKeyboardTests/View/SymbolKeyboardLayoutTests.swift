@@ -17,7 +17,7 @@ struct SymbolKeyboardLayoutTests {
     /// 기본 높이 설정(240)에서의 세로 숫자 행 높이(52.75). 실제 키보드처럼 정책 값으로 갱신한다
     private static let defaultPortraitNumberRowHeight = KeyboardHeightPolicy.numberRowHeight(
         isEnabled: true,
-        isPortrait: true,
+        usesPortraitHeight: true,
         keyboardSettingsHeight: DefaultValues.keyboardHeight
     )
 

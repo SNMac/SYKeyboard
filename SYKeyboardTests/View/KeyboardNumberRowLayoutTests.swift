@@ -85,7 +85,7 @@ struct KeyboardNumberRowLayoutTests {
                 name: "세로",
                 numberRowHeight: KeyboardHeightPolicy.numberRowHeight(
                     isEnabled: true,
-                    isPortrait: true,
+                    usesPortraitHeight: true,
                     keyboardSettingsHeight: DefaultValues.keyboardHeight
                 ),
                 // keyboardHStackView(240 + 52.75)에서 프레임 여백 4를 뺀 높이

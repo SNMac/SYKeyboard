@@ -1012,7 +1012,7 @@ private extension BaseKeyboardViewController {
 
         let isSuggestionBarVisible = !shouldHideSuggestionBar
 
-        let isPortrait = KeyboardHeightPolicy.isPortrait(
+        let usesPortraitHeight = KeyboardHeightPolicy.usesPortraitHeight(
             orientation: orientation,
             usesOrientation: usesInterfaceOrientationForKeyboardHeight,
             fallbackBounds: window.bounds,
@@ -1024,7 +1024,7 @@ private extension BaseKeyboardViewController {
         // extension이 살아 있는 동안 설정이 바뀌어도 뷰와 프레임 높이가 어긋나지 않는다
         let numberRowHeight = KeyboardHeightPolicy.numberRowHeight(
             isEnabled: primaryKeyboardViews.contains { $0.showsNumberRow },
-            isPortrait: isPortrait,
+            usesPortraitHeight: usesPortraitHeight,
             keyboardSettingsHeight: keyboardSettingsManager.keyboardHeight
         )
         updateNumberRowHeight(numberRowHeight)
@@ -1034,7 +1034,7 @@ private extension BaseKeyboardViewController {
             landscapeKeyboardHeight: KeyboardLayoutFigure.landscapeKeyboardHeight,
             suggestionBarHeight: KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing,
             isSuggestionBarVisible: isSuggestionBarVisible,
-            isPortrait: isPortrait,
+            usesPortraitHeight: usesPortraitHeight,
             numberRowHeight: numberRowHeight
         )
 
