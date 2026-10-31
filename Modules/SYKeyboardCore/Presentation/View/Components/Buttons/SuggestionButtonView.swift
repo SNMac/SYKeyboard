@@ -43,7 +43,7 @@ final class SuggestionButtonView: UIView {
 
     private let suggestionLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: FontSize.stringKeyMedium)
+        label.font = .systemFont(ofSize: FontSize.suggestion)
         label.textColor = .label
         label.textAlignment = .center
         label.numberOfLines = 2
@@ -79,7 +79,7 @@ final class SuggestionButtonView: UIView {
     ///   - isRemovable: 길게 눌러 학습에서 삭제할 수 있는 후보면 `true`. 약한 단서로 medium 굵기를 쓴다
     func update(to title: String, isRemovable: Bool = false) {
         suggestionLabel.text = title
-        suggestionLabel.font = .systemFont(ofSize: FontSize.stringKeyMedium, weight: isRemovable ? .medium : .regular)
+        suggestionLabel.font = .systemFont(ofSize: FontSize.suggestion, weight: isRemovable ? .medium : .regular)
         updateAppearance()
     }
 }

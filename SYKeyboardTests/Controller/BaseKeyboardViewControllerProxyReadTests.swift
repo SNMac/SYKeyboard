@@ -92,6 +92,64 @@ struct BaseKeyboardViewControllerProxyReadTests {
         #expect(controller.proxy.readCount(of: "returnKeyType") == 1)
     }
 
+    @Test("반복 입력 도중 textWillChange로 버퍼가 비워진 틱은 쓰기 전 앞 문맥을 한 번만 읽음")
+    func testRepeatInsertTickAfterTextWillChangeReadsContextOnceBeforeWrite() {
+        let controller = TestProxyReadViewController()
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        window.addSubview(controller.view)
+        let button = PrimaryKeyButton(
+            keyboard: .dubeolsik,
+            button: .keyButton(primary: ["a"], secondary: nil)
+        )
+        // 길게 누르기가 인식되면 첫 글자가 바로 입력돼 버퍼가 찬다. 크래시는 그 뒤 문서 상태가 리셋된 틱에서 났다
+        controller.repeatTextInteractionWillPerform(button: button)
+        controller.textWillChange(nil)
+        let writeCountBeforeTick = controller.proxy.writes.count
+        controller.proxy.resetReadCounts()
+
+        controller.performRepeatTextInteraction(for: button)
+
+        #expect(controller.proxy.writes.dropFirst(writeCountBeforeTick) == ["insertText(a)"])
+        // 쓰기 뒤 undo 기록·컨트롤 갱신의 읽기는 새 문맥이 필요하므로 쓰기 전 읽기만 센다
+        let readCountsBeforeTickWrite = controller.proxy.readCountsBeforeEachWrite.dropFirst(writeCountBeforeTick).first
+        #expect(readCountsBeforeTickWrite?["documentContextBeforeInput"] == 1)
+
+        controller.repeatTextInteractionDidPerform(button: button)
+        window.removeFromSuperview()
+    }
+
+    @Test("반복 삭제 틱은 쓰기 전 문맥과 선택 텍스트를 한 번씩만 읽음")
+    func testRepeatDeleteTickReadsContextOnceBeforeWrite() throws {
+        let controller = TestProxyReadViewController()
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        window.addSubview(controller.view)
+        let button = DeleteButton(keyboard: .dubeolsik)
+        controller.repeatTextInteractionWillPerform(button: button)
+        let writeCountBeforeTicks = controller.proxy.writes.count
+        controller.proxy.resetReadCounts()
+
+        // 첫 틱은 처리할 이전 결과가 없고, 둘째 틱은 첫 틱의 삭제 결과를 처리한 뒤 삭제한다
+        controller.performRepeatTextInteraction(for: button)
+        controller.proxy.resetReadCounts()
+        controller.performRepeatTextInteraction(for: button)
+
+        // 아래에서 쓰기 인덱스로 읽기 기록을 꺼내므로 삭제가 두 번 일어났다는 전제가 깨지면 여기서 끝낸다
+        try #require(controller.proxy.writes.dropFirst(writeCountBeforeTicks) == ["deleteBackward", "deleteBackward"])
+        // 쓰기 뒤 undo 기록·컨트롤 갱신의 읽기는 새 문맥이 필요하므로 쓰기 전 읽기만 센다
+        let readCountsBeforeFirstWrite = controller.proxy.readCountsBeforeEachWrite[writeCountBeforeTicks]
+        #expect(readCountsBeforeFirstWrite["documentContextBeforeInput"] == 1)
+        #expect(readCountsBeforeFirstWrite["documentContextAfterInput"] == 1)
+        #expect(readCountsBeforeFirstWrite["selectedText"] == 1)
+        // 둘째 기록은 첫 틱이 끝난 뒤 초기화한 횟수부터 센다
+        let readCountsBeforeSecondWrite = controller.proxy.readCountsBeforeEachWrite[writeCountBeforeTicks + 1]
+        #expect(readCountsBeforeSecondWrite["documentContextBeforeInput"] == 1)
+        #expect(readCountsBeforeSecondWrite["documentContextAfterInput"] == 1)
+        #expect(readCountsBeforeSecondWrite["selectedText"] == 1)
+
+        controller.repeatTextInteractionDidPerform(button: button)
+        window.removeFromSuperview()
+    }
+
     @Test("textWillChange에서 읽은 값을 textDidChange가 다시 읽음")
     func testTextDidChangeRereadsValuesReadInTextWillChange() {
         let controller = TestProxyReadViewController()
