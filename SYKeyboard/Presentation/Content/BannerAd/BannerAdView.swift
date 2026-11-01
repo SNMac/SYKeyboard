@@ -24,6 +24,7 @@ struct BannerAdView: UIViewRepresentable {
         banner.adUnitID = Configuration.admobID
         banner.load(Request())
         banner.delegate = context.coordinator
+        context.coordinator.requestedAdSize = adSize.size
 
         let coordinator = context.coordinator
         banner.paidEventHandler = { [weak coordinator, weak banner] value in
@@ -36,8 +37,9 @@ struct BannerAdView: UIViewRepresentable {
 
     func updateUIView(_ uiView: UIView, context: Context) {
         guard let banner = uiView as? BannerView,
-              banner.adSize.size != adSize.size else { return }
+              context.coordinator.requestedAdSize != adSize.size else { return }
 
+        context.coordinator.requestedAdSize = adSize.size
         banner.adSize = adSize
         banner.load(Request())
     }
