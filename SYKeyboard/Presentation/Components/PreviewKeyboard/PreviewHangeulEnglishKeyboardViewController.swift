@@ -1,5 +1,5 @@
 //
-//  PreviewHangeulKeyboardViewController.swift
+//  PreviewHangeulEnglishKeyboardViewController.swift
 //  SYKeyboard
 //
 //  Created by 서동환 on 11/29/25.
@@ -8,14 +8,14 @@
 import SwiftUI
 
 import SYKeyboardCore
-import HangeulKeyboardCore
+import HangeulEnglishKeyboardCore
 
-/// 한글 키보드 Preview
+/// 한영 키보드 Preview. 한글·영어는 미리보기 안의 한영 전환 키로 바꾼다
 /// - 높이는 SwiftUI에서 `frame`으로 조정
 /// - 한 손 키보드 너비는 `updateOneHandedWidthForPreview` 메서드로 조정
 /// - 글자 열 너비 배율은 `updateLetterColumnWidthForPreview` 메서드로 조정
 /// - 숫자 행 높이는 `updateNumberRowHeightForPreview` 메서드로 조정
-struct PreviewHangeulKeyboardViewController: UIViewControllerRepresentable {
+struct PreviewHangeulEnglishKeyboardViewController: UIViewControllerRepresentable {
 
     // MARK: - Properties
 
@@ -28,9 +28,9 @@ struct PreviewHangeulKeyboardViewController: UIViewControllerRepresentable {
     var numberRowHeight: CGFloat
     
     class Coordinator: NSObject {
-        var parent: PreviewHangeulKeyboardViewController
+        var parent: PreviewHangeulEnglishKeyboardViewController
         
-        init(_ parent: PreviewHangeulKeyboardViewController) {
+        init(_ parent: PreviewHangeulEnglishKeyboardViewController) {
             self.parent = parent
         }
     }
@@ -41,10 +41,10 @@ struct PreviewHangeulKeyboardViewController: UIViewControllerRepresentable {
         return Coordinator(self)
     }
     
-    func makeUIViewController(context: Context) -> HangeulKeyboardCoreViewController {
+    func makeUIViewController(context: Context) -> HangeulEnglishKeyboardCoreViewController {
         // Base가 viewDidLoad에서 전체 접근 허용 안내를 띄우지 않도록 view를 만들기 전에 표시한다
-        HangeulKeyboardCoreViewController.isPreview = true
-        let keyboard = HangeulKeyboardCoreViewController()
+        HangeulEnglishKeyboardCoreViewController.isPreview = true
+        let keyboard = HangeulEnglishKeyboardCoreViewController()
         keyboard.previewOneHandedMode = oneHandedMode
         
         let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
@@ -63,7 +63,7 @@ struct PreviewHangeulKeyboardViewController: UIViewControllerRepresentable {
         return keyboard
     }
     
-    func updateUIViewController(_ uiViewController: HangeulKeyboardCoreViewController, context: Context) {
+    func updateUIViewController(_ uiViewController: HangeulEnglishKeyboardCoreViewController, context: Context) {
         context.coordinator.parent = self
         
         uiViewController.updateOneHandedWidthForPreview(to: oneHandedKeyboardWidth)

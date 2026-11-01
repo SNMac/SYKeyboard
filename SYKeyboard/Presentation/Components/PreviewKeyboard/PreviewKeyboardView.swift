@@ -19,7 +19,6 @@ struct PreviewKeyboardView: View {
     @Binding var oneHandedKeyboardWidth: Double
     @Binding var letterColumnWidthMultiplier: Double
     @Binding var needsInputModeSwitchKey: Bool
-    @Binding var previewKeyboardLanguage: PreviewKeyboardLanguage
     @Binding var oneHandedMode: OneHandedMode
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -40,21 +39,12 @@ struct PreviewKeyboardView: View {
     // MARK: - Content
     
     var body: some View {
-        // 가로에서는 높이가 모자라 각 설정 화면이 슬라이더 옆에 언어 선택을 둔다
-        if verticalSizeClass != .compact {
-            PreviewKeyboardLanguagePicker(selection: $previewKeyboardLanguage)
-                .frame(height: 44)
-                .padding(.horizontal)
-        }
-
-        Group {
-            switch previewKeyboardLanguage {
-            case .hangeul:
-                previewHangeulKeyboard
-            case .english:
-                previewEnglishKeyboard
-            }
-        }
+        // 한영 키보드라 한글·영어는 미리보기 안의 한영 전환 키로 바꾼다
+        PreviewHangeulEnglishKeyboardViewController(keyboardHeight: previewFrameHeight,
+                                                    oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
+                                                    letterColumnWidthMultiplier: $letterColumnWidthMultiplier,
+                                                    oneHandedMode: $oneHandedMode,
+                                                    numberRowHeight: numberRowHeight)
         .ignoresSafeArea(.container, edges: ignoredSafeAreaEdges)
         .frame(height: previewFrameHeight)
         .background(.keyboardBackground)
@@ -62,25 +52,9 @@ struct PreviewKeyboardView: View {
     }
 }
 
-// MARK: - UI Components
+// MARK: - Private Methods
 
 private extension PreviewKeyboardView {
-    var previewHangeulKeyboard: some View {
-        PreviewHangeulKeyboardViewController(keyboardHeight: previewFrameHeight,
-                                             oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
-                                             letterColumnWidthMultiplier: $letterColumnWidthMultiplier,
-                                             oneHandedMode: $oneHandedMode,
-                                             numberRowHeight: numberRowHeight)
-    }
-
-    var previewEnglishKeyboard: some View {
-        PreviewEnglishKeyboardViewController(keyboardHeight: previewFrameHeight,
-                                             oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
-                                             letterColumnWidthMultiplier: $letterColumnWidthMultiplier,
-                                             oneHandedMode: $oneHandedMode,
-                                             numberRowHeight: numberRowHeight)
-    }
-
     /// 실제 키보드처럼 화면 size class로 세로·가로 높이 규칙을 고른다
     var usesPortraitHeight: Bool {
         KeyboardHeightPolicy.usesPortraitHeight(
@@ -132,27 +106,10 @@ private extension PreviewKeyboardView {
     }
 }
 
-// MARK: - PreviewKeyboardLanguagePicker
-
-/// 미리보기 키보드의 한글·영어 선택. 세로에서는 미리보기 위에, 가로에서는 설정 화면의 슬라이더 옆에 둔다
-struct PreviewKeyboardLanguagePicker: View {
-    @Binding var selection: PreviewKeyboardLanguage
-
-    var body: some View {
-        Picker(selection: $selection, label: Text("키보드 언어")) {
-            ForEach(PreviewKeyboardLanguage.allCases, id: \.self) {
-                Text($0.displayStr)
-            }
-        }
-        .pickerStyle(.segmented)
-    }
-}
-
 // MARK: - PreviewSettingsCompactRow
 
-/// 가로 설정 화면의 한 줄 배치: 값, 슬라이더, 미리보기 언어 선택
+/// 가로 설정 화면의 한 줄 배치: 값, 슬라이더
 struct PreviewSettingsCompactRow<Value: View, SliderContent: View>: View {
-    @Binding var previewKeyboardLanguage: PreviewKeyboardLanguage
     @ViewBuilder let value: () -> Value
     @ViewBuilder let slider: () -> SliderContent
 
@@ -162,10 +119,9 @@ struct PreviewSettingsCompactRow<Value: View, SliderContent: View>: View {
                 .monospacedDigit()
                 .frame(minWidth: 40)
             slider()
-            PreviewKeyboardLanguagePicker(selection: $previewKeyboardLanguage)
-                .frame(width: 256)
         }
-        .frame(height: 44)
+        // 높이를 고정하지 않는다. 가로에서 아래 안내 문구와 미리보기 사이 간격을 남기고, iOS 버전마다 다른 컨트롤 높이를 따른다
+        .padding(.vertical, 2)
         .padding(.horizontal)
     }
 }
@@ -186,14 +142,5 @@ extension KeyboardHeightPolicy {
             horizontalSizeClass: UIUserInterfaceSizeClass(horizontalSizeClass),
             verticalSizeClass: UIUserInterfaceSizeClass(verticalSizeClass)
         )
-    }
-}
-
-// MARK: - UISegmentedControl Extension
-
-extension UISegmentedControl {
-    override open func didMoveToSuperview() {
-        super.didMoveToSuperview()
-        self.setContentHuggingPriority(.defaultLow, for: .vertical)
     }
 }

@@ -484,7 +484,8 @@ private extension HangeulEnglishKeyboardCoreViewController {
                     guard let self else { return }
                     let newMode: HangeulEnglishLanguageMode =
                         modeCoordinator.currentMode == .hangeul ? .english : .hangeul
-                    applyLanguageMode(newMode, persist: true, isManualSwitch: true)
+                    // 설정 앱 미리보기에서 바꾼 언어는 실제 키보드의 마지막 언어로 저장하지 않는다
+                    applyLanguageMode(newMode, persist: !BaseKeyboardViewController.isPreview, isManualSwitch: true)
                 },
                 for: .touchUpInside
             )

@@ -792,16 +792,6 @@
         }
       }
     },
-    "영어 키보드" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "English Keyboard"
-          }
-        }
-      }
-    },
     "오류가 발생했습니다" : {
       "localizations" : {
         "en" : {
@@ -1158,16 +1148,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Display predicted text at the top of the keyboard"
-          }
-        }
-      }
-    },
-    "키보드 언어" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keyboard Language"
           }
         }
       }

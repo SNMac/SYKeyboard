@@ -30,8 +30,6 @@ struct LetterColumnWidthSettingsView: View {
     @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaultsManager.shared.storage)
     private var needsInputModeSwitchKey = DefaultValues.needsInputModeSwitchKey
 
-    @AppStorage("previewKeyboardLanguage") private var previewKeyboardLanguage: PreviewKeyboardLanguage = .hangeul
-
     @State private var previewOneHandedMode: OneHandedMode = .center
     @State private var tempLetterColumnWidthMultiplier: Double = DefaultValues.letterColumnWidthMultiplier
 
@@ -47,7 +45,6 @@ struct LetterColumnWidthSettingsView: View {
                                 oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
                                 letterColumnWidthMultiplier: $tempLetterColumnWidthMultiplier,
                                 needsInputModeSwitchKey: $needsInputModeSwitchKey,
-                                previewKeyboardLanguage: $previewKeyboardLanguage,
                                 oneHandedMode: $previewOneHandedMode)
         }.onAppear {
             tempLetterColumnWidthMultiplier = letterColumnWidthMultiplier
@@ -71,8 +68,8 @@ private extension LetterColumnWidthSettingsView {
     @ViewBuilder
     var letterColumnWidthControls: some View {
         if verticalSizeClass == .compact {
-            // 가로는 높이가 모자라 값·슬라이더·언어 선택을 한 줄에 둔다
-            PreviewSettingsCompactRow(previewKeyboardLanguage: $previewKeyboardLanguage) {
+            // 가로는 높이가 모자라 값과 슬라이더를 한 줄에 둔다
+            PreviewSettingsCompactRow {
                 widthValueText
             } slider: {
                 widthSlider

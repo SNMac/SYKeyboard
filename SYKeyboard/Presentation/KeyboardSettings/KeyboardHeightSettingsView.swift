@@ -31,8 +31,6 @@ struct KeyboardHeightSettingsView: View {
     @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaultsManager.shared.storage)
     private var needsInputModeSwitchKey = true
     
-    @AppStorage("previewKeyboardLanguage") private var previewKeyboardLanguage: PreviewKeyboardLanguage = .hangeul
-    
     @State private var previewOneHandedMode: OneHandedMode = .center
     @State private var tempKeyboardHeight: Double = DefaultValues.keyboardHeight
     
@@ -42,13 +40,13 @@ struct KeyboardHeightSettingsView: View {
         VStack {
             keyboardHeightSettings
             
-            Spacer()
+            // 가로에서 안내 문구 두 줄을 넣을 높이를 확보하려고 최소 높이를 두지 않는다. 세로에서는 늘어나므로 영향이 없다
+            Spacer(minLength: 0)
             
             PreviewKeyboardView(keyboardSettingsHeight: tempKeyboardHeight,
                                 oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
                                 letterColumnWidthMultiplier: $letterColumnWidthMultiplier,
                                 needsInputModeSwitchKey: $needsInputModeSwitchKey,
-                                previewKeyboardLanguage: $previewKeyboardLanguage,
                                 oneHandedMode: $previewOneHandedMode)
         }.onAppear {
             tempKeyboardHeight = keyboardHeight
@@ -84,10 +82,9 @@ private extension KeyboardHeightSettingsView {
     @ViewBuilder
     var keyboardHeightControls: some View {
         if verticalSizeClass == .compact {
-            // 가로는 높이가 모자라 값·슬라이더·언어 선택을 한 줄에 둔다
-            // iPhone 13 mini 가로에서 안내 문구 두 줄까지 스크롤 없이 들어가도록 줄 사이 간격을 두지 않는다
-            VStack(spacing: 0) {
-                PreviewSettingsCompactRow(previewKeyboardLanguage: $previewKeyboardLanguage) {
+            // 가로는 높이가 모자라 값과 슬라이더를 한 줄에 두고, 안내 문구와 붙어 보이지 않게 띄운다
+            VStack(spacing: 8) {
+                PreviewSettingsCompactRow {
                     heightValueText
                 } slider: {
                     heightSlider

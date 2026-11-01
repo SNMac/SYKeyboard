@@ -30,8 +30,6 @@ struct OneHandedKeyboardWidthSettingsView: View {
     @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaultsManager.shared.storage)
     private var needsInputModeSwitchKey = DefaultValues.needsInputModeSwitchKey
     
-    @AppStorage("previewKeyboardLanguage") private var previewKeyboardLanguage: PreviewKeyboardLanguage = .hangeul
-    
     @State private var previewOneHandedMode: OneHandedMode = .right
     @State private var tempOneHandedKeyboardWidth: Double = DefaultValues.oneHandedKeyboardWidth
     
@@ -47,11 +45,9 @@ struct OneHandedKeyboardWidthSettingsView: View {
                                 oneHandedKeyboardWidth: $tempOneHandedKeyboardWidth,
                                 letterColumnWidthMultiplier: $letterColumnWidthMultiplier,
                                 needsInputModeSwitchKey: $needsInputModeSwitchKey,
-                                previewKeyboardLanguage: $previewKeyboardLanguage,
                                 oneHandedMode: $previewOneHandedMode)
         }.onAppear {
             tempOneHandedKeyboardWidth = oneHandedKeyboardWidth
-            updatePreviewLanguageBasedOnSystem()
         }.requestReviewOnDetailSettingsReturn()
     }
 }
@@ -70,8 +66,8 @@ private extension OneHandedKeyboardWidthSettingsView {
     @ViewBuilder
     var oneHandedKeyboardWidthControls: some View {
         if verticalSizeClass == .compact {
-            // 가로는 높이가 모자라 값·슬라이더·언어 선택을 한 줄에 둔다
-            PreviewSettingsCompactRow(previewKeyboardLanguage: $previewKeyboardLanguage) {
+            // 가로는 높이가 모자라 값과 슬라이더를 한 줄에 둔다
+            PreviewSettingsCompactRow {
                 widthValueText
             } slider: {
                 widthSlider
@@ -129,20 +125,6 @@ private extension OneHandedKeyboardWidthSettingsView {
                         .fontWeight(.semibold)
                 }
             }
-        }
-    }
-}
-
-// MARK: - Private Methods
-
-private extension OneHandedKeyboardWidthSettingsView {
-    func updatePreviewLanguageBasedOnSystem() {
-        let currentLanguageCode = Bundle.main.preferredLocalizations.first ?? "ko"
-        
-        if currentLanguageCode.hasPrefix("ko") {
-            previewKeyboardLanguage = .hangeul
-        } else {
-            previewKeyboardLanguage = .english
         }
     }
 }
