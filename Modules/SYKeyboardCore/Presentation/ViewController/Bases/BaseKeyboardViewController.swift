@@ -383,6 +383,12 @@ open class BaseKeyboardViewController: UIInputViewController {
         coordinator.animate { [weak self] _ in self?.setKeyboardHeight() }
     }
 
+    open override func viewSafeAreaInsetsDidChange() {
+        super.viewSafeAreaInsetsDidChange()
+        // 키 영역 여백은 safe area를 직접 반영하므로 safe area가 바뀌면 다시 정한다
+        setKeyboardHeight()
+    }
+
     open override func textWillChange(_ textInput: (any UITextInput)?) {
         super.textWillChange(textInput)
         logger.debug("textWillChange")
@@ -1031,6 +1037,10 @@ private extension BaseKeyboardViewController {
             keyboardSettingsHeight: keyboardSettingsManager.keyboardHeight
         )
         updateNumberRowHeight(numberRowHeight)
+
+        keyboardView.updateKeyboardHStackSafeAreaMargins(
+            KeyboardSafeAreaPolicy.keyAreaInsets(safeAreaInsets: view.safeAreaInsets)
+        )
 
         let height = KeyboardHeightPolicy.height(
             keyboardSettingsHeight: keyboardSettingsManager.keyboardHeight,
