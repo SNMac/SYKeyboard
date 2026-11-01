@@ -16,6 +16,7 @@ struct OneHandedKeyboardWidthSettingsView: View {
     // MARK: - Properties
     
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
     
     @AppStorage(UserDefaultsKeys.keyboardHeight, store: UserDefaultsManager.shared.storage)
     private var keyboardHeight = DefaultValues.keyboardHeight
@@ -58,12 +59,41 @@ struct OneHandedKeyboardWidthSettingsView: View {
 // MARK: - UI Components
 
 private extension OneHandedKeyboardWidthSettingsView {
+    var widthValueText: Text {
+        Text("\(Int(tempOneHandedKeyboardWidth) - (Int(DefaultValues.oneHandedKeyboardWidth) - 100))")
+    }
+
+    var widthSlider: some View {
+        Slider(value: $tempOneHandedKeyboardWidth, in: 300...340, step: 1)
+    }
+
+    @ViewBuilder
+    var oneHandedKeyboardWidthControls: some View {
+        if verticalSizeClass == .compact {
+            // 가로는 높이가 모자라 값·슬라이더·언어 선택을 한 줄에 둔다
+            PreviewSettingsCompactRow(previewKeyboardLanguage: $previewKeyboardLanguage) {
+                widthValueText
+            } slider: {
+                widthSlider
+            }
+            .padding(.top, 8)
+        } else {
+            VStack {
+                widthValueText
+                    .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 0))
+                widthSlider
+                    .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
+            }
+        }
+    }
+
     var oneHandedKeyboardWidthSettings: some View {
-        VStack {
-            Text("\(Int(tempOneHandedKeyboardWidth) - (Int(DefaultValues.oneHandedKeyboardWidth) - 100))")
-                .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 0))
-            Slider(value: $tempOneHandedKeyboardWidth, in: 300...340, step: 1)
-                .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
+        // 세로처럼 다 들어가면 그대로 두고, 가로처럼 미리보기를 뺀 높이가 모자라면 이 부분만 스크롤한다
+        ViewThatFits(in: .vertical) {
+            oneHandedKeyboardWidthControls
+            ScrollView {
+                oneHandedKeyboardWidthControls
+            }
         }
         .navigationTitle("한 손 키보드 너비")
         .navigationBarTitleDisplayMode(.inline)
