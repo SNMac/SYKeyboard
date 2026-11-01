@@ -27,8 +27,6 @@ struct OneHandedKeyboardWidthSettingsView: View {
     @AppStorage(UserDefaultsKeys.letterColumnWidthMultiplier, store: UserDefaultsManager.shared.storage)
     private var letterColumnWidthMultiplier = DefaultValues.letterColumnWidthMultiplier
 
-    @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaultsManager.shared.storage)
-    private var needsInputModeSwitchKey = DefaultValues.needsInputModeSwitchKey
     
     @State private var previewOneHandedMode: OneHandedMode = .right
     @State private var tempOneHandedKeyboardWidth: Double = DefaultValues.oneHandedKeyboardWidth
@@ -44,7 +42,6 @@ struct OneHandedKeyboardWidthSettingsView: View {
             PreviewKeyboardView(keyboardSettingsHeight: keyboardHeight,
                                 oneHandedKeyboardWidth: $tempOneHandedKeyboardWidth,
                                 letterColumnWidthMultiplier: $letterColumnWidthMultiplier,
-                                needsInputModeSwitchKey: $needsInputModeSwitchKey,
                                 oneHandedMode: $previewOneHandedMode)
         }.onAppear {
             tempOneHandedKeyboardWidth = oneHandedKeyboardWidth
