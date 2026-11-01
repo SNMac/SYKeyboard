@@ -26,15 +26,6 @@ struct KeyboardHeightSettingsView: View {
     @AppStorage(UserDefaultsKeys.letterColumnWidthMultiplier, store: UserDefaultsManager.shared.storage)
     private var letterColumnWidthMultiplier = DefaultValues.letterColumnWidthMultiplier
 
-    @AppStorage(UserDefaultsKeys.isPredictiveTextEnabled, store: UserDefaultsManager.shared.storage)
-    private var isPredictiveTextEnabled = DefaultValues.isPredictiveTextEnabled
-
-    @AppStorage(UserDefaultsKeys.isUndoRedoEnabled, store: UserDefaultsManager.shared.storage)
-    private var isUndoRedoEnabled = DefaultValues.isUndoRedoEnabled
-
-    @AppStorage(UserDefaultsKeys.isClipboardHistoryEnabled, store: UserDefaultsManager.shared.storage)
-    private var isClipboardHistoryEnabled = DefaultValues.isClipboardHistoryEnabled
-    
     @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaultsManager.shared.storage)
     private var needsInputModeSwitchKey = true
     
@@ -42,7 +33,6 @@ struct KeyboardHeightSettingsView: View {
     
     @State private var previewOneHandedMode: OneHandedMode = .center
     @State private var tempKeyboardHeight: Double = DefaultValues.keyboardHeight
-    @State private var previewKeyboardHeight: Double = DefaultValues.keyboardHeight
     
     // MARK: - Content
     
@@ -52,8 +42,7 @@ struct KeyboardHeightSettingsView: View {
             
             Spacer()
             
-            PreviewKeyboardView(keyboardHeight: $previewKeyboardHeight,
-                                keyboardSettingsHeight: tempKeyboardHeight,
+            PreviewKeyboardView(keyboardSettingsHeight: tempKeyboardHeight,
                                 oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
                                 letterColumnWidthMultiplier: $letterColumnWidthMultiplier,
                                 needsInputModeSwitchKey: $needsInputModeSwitchKey,
@@ -61,9 +50,6 @@ struct KeyboardHeightSettingsView: View {
                                 oneHandedMode: $previewOneHandedMode)
         }.onAppear {
             tempKeyboardHeight = keyboardHeight
-            updatePreviewKeyboardHeight()
-        }.onChange(of: tempKeyboardHeight) { _ in
-            updatePreviewKeyboardHeight()
         }.requestReviewOnDetailSettingsReturn()
     }
 }
@@ -118,22 +104,6 @@ private extension KeyboardHeightSettingsView {
                 }
             }
         }
-    }
-}
-
-// MARK: - Private Methods
-
-private extension KeyboardHeightSettingsView {
-    func updatePreviewKeyboardHeight() {
-        let isSuggestionBarVisible = KeyboardPresentationStatePolicy.isSuggestionBarVisibleForSettingsPreview(
-            isPredictiveTextEnabled: isPredictiveTextEnabled,
-            isUndoRedoEnabled: isUndoRedoEnabled,
-            isClipboardHistoryEnabled: isClipboardHistoryEnabled
-        )
-        let suggestionBarHeight = isSuggestionBarVisible
-        ? KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing + KeyboardLayoutFigure.keyboardFrameSpacing
-        : 0
-        previewKeyboardHeight = tempKeyboardHeight + suggestionBarHeight
     }
 }
 

@@ -19,7 +19,8 @@ struct PreviewHangeulKeyboardViewController: UIViewControllerRepresentable {
 
     // MARK: - Properties
 
-    @Binding var keyboardHeight: Double
+    /// 처음 만들 때의 뷰 높이. 이후 높이는 SwiftUI `frame`이 정한다
+    var keyboardHeight: CGFloat
     @Binding var oneHandedKeyboardWidth: Double
     @Binding var letterColumnWidthMultiplier: Double
     @Binding var oneHandedMode: OneHandedMode

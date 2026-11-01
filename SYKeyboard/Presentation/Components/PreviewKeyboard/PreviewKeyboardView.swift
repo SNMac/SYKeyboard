@@ -14,9 +14,7 @@ struct PreviewKeyboardView: View {
 
     // MARK: - Properties
 
-    /// 자동완성 바를 포함한 글자 영역 미리보기 높이
-    @Binding var keyboardHeight: Double
-    /// 키보드 높이 설정값. 숫자 행 높이 계산에 쓴다
+    /// 키보드 높이 설정값. 높이 설정 화면에서는 저장 전 슬라이더 값이다
     let keyboardSettingsHeight: Double
     @Binding var oneHandedKeyboardWidth: Double
     @Binding var letterColumnWidthMultiplier: Double
@@ -26,6 +24,15 @@ struct PreviewKeyboardView: View {
 
     @AppStorage(UserDefaultsKeys.showsNumberRow, store: UserDefaultsManager.shared.storage)
     private var showsNumberRow = DefaultValues.showsNumberRow
+
+    @AppStorage(UserDefaultsKeys.isPredictiveTextEnabled, store: UserDefaultsManager.shared.storage)
+    private var isPredictiveTextEnabled = DefaultValues.isPredictiveTextEnabled
+
+    @AppStorage(UserDefaultsKeys.isUndoRedoEnabled, store: UserDefaultsManager.shared.storage)
+    private var isUndoRedoEnabled = DefaultValues.isUndoRedoEnabled
+
+    @AppStorage(UserDefaultsKeys.isClipboardHistoryEnabled, store: UserDefaultsManager.shared.storage)
+    private var isClipboardHistoryEnabled = DefaultValues.isClipboardHistoryEnabled
 
     // MARK: - Content
     
@@ -59,7 +66,7 @@ struct PreviewKeyboardView: View {
 
 private extension PreviewKeyboardView {
     var previewHangeulKeyboard: some View {
-        PreviewHangeulKeyboardViewController(keyboardHeight: $keyboardHeight,
+        PreviewHangeulKeyboardViewController(keyboardHeight: previewFrameHeight,
                                              oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
                                              letterColumnWidthMultiplier: $letterColumnWidthMultiplier,
                                              oneHandedMode: $oneHandedMode,
@@ -67,24 +74,43 @@ private extension PreviewKeyboardView {
     }
 
     var previewEnglishKeyboard: some View {
-        PreviewEnglishKeyboardViewController(keyboardHeight: $keyboardHeight,
+        PreviewEnglishKeyboardViewController(keyboardHeight: previewFrameHeight,
                                              oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
                                              letterColumnWidthMultiplier: $letterColumnWidthMultiplier,
                                              oneHandedMode: $oneHandedMode,
                                              numberRowHeight: numberRowHeight)
     }
 
-    /// 미리보기는 항상 세로 화면이므로 세로 숫자 행 높이를 쓴다
+    /// 미리보기는 항상 세로 화면이므로 세로 높이 규칙을 쓴다
+    var usesPortraitHeight: Bool { true }
+
+    var isSuggestionBarVisible: Bool {
+        KeyboardPresentationStatePolicy.isSuggestionBarVisibleForSettingsPreview(
+            isPredictiveTextEnabled: isPredictiveTextEnabled,
+            isUndoRedoEnabled: isUndoRedoEnabled,
+            isClipboardHistoryEnabled: isClipboardHistoryEnabled
+        )
+    }
+
     var numberRowHeight: CGFloat {
         KeyboardHeightPolicy.numberRowHeight(
             isEnabled: showsNumberRow,
-            usesPortraitHeight: true,
+            usesPortraitHeight: usesPortraitHeight,
             keyboardSettingsHeight: keyboardSettingsHeight
         )
     }
 
+    /// 실제 키보드가 `setKeyboardHeight()`에서 쓰는 것과 같은 계산으로 키보드 뷰 높이를 정한다.
+    /// 미리보기는 키 영역에 높이 제약이 없어 자동완성 바를 뺀 나머지를 키 영역이 채운다
     var previewFrameHeight: CGFloat {
-        keyboardHeight + numberRowHeight
+        KeyboardHeightPolicy.height(
+            keyboardSettingsHeight: keyboardSettingsHeight,
+            landscapeKeyboardHeight: KeyboardLayoutFigure.landscapeKeyboardHeight,
+            suggestionBarHeight: KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing,
+            isSuggestionBarVisible: isSuggestionBarVisible,
+            usesPortraitHeight: usesPortraitHeight,
+            numberRowHeight: numberRowHeight
+        ).keyboardViewHeight
     }
 }
 

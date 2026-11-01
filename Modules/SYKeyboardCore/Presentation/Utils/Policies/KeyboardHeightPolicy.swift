@@ -10,9 +10,9 @@ import UIKit
 
 public enum KeyboardHeightPolicy {
 
-    struct Height {
-        let keyboardViewHeight: CGFloat
-        let keyboardHStackViewHeight: CGFloat
+    public struct Height {
+        public let keyboardViewHeight: CGFloat
+        public let keyboardHStackViewHeight: CGFloat
     }
 
     /// 세로 모드 숫자 행 최소 높이. 키보드 높이 설정 최소값일 때의 글자 행 높이와 같다
@@ -54,7 +54,7 @@ public enum KeyboardHeightPolicy {
         return portraitNumberRowHeight + letterRowGrowth * portraitNumberRowGrowthRatio
     }
 
-    static func height(
+    public static func height(
         keyboardSettingsHeight: CGFloat,
         landscapeKeyboardHeight: CGFloat,
         suggestionBarHeight: CGFloat,
@@ -77,7 +77,7 @@ public enum KeyboardHeightPolicy {
         }
     }
 
-    static func usesPortraitHeight(
+    public static func usesPortraitHeight(
         orientation: UIInterfaceOrientation,
         usesOrientation: Bool = true,
         fallbackBounds: CGRect,

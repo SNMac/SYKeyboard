@@ -26,22 +26,12 @@ struct LetterColumnWidthSettingsView: View {
     @AppStorage(UserDefaultsKeys.letterColumnWidthMultiplier, store: UserDefaultsManager.shared.storage)
     private var letterColumnWidthMultiplier = DefaultValues.letterColumnWidthMultiplier
 
-    @AppStorage(UserDefaultsKeys.isPredictiveTextEnabled, store: UserDefaultsManager.shared.storage)
-    private var isPredictiveTextEnabled = DefaultValues.isPredictiveTextEnabled
-
-    @AppStorage(UserDefaultsKeys.isUndoRedoEnabled, store: UserDefaultsManager.shared.storage)
-    private var isUndoRedoEnabled = DefaultValues.isUndoRedoEnabled
-
-    @AppStorage(UserDefaultsKeys.isClipboardHistoryEnabled, store: UserDefaultsManager.shared.storage)
-    private var isClipboardHistoryEnabled = DefaultValues.isClipboardHistoryEnabled
-
     @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaultsManager.shared.storage)
     private var needsInputModeSwitchKey = DefaultValues.needsInputModeSwitchKey
 
     @AppStorage("previewKeyboardLanguage") private var previewKeyboardLanguage: PreviewKeyboardLanguage = .hangeul
 
     @State private var previewOneHandedMode: OneHandedMode = .center
-    @State private var previewKeyboardHeight: Double = DefaultValues.keyboardHeight
     @State private var tempLetterColumnWidthMultiplier: Double = DefaultValues.letterColumnWidthMultiplier
 
     // MARK: - Content
@@ -52,8 +42,7 @@ struct LetterColumnWidthSettingsView: View {
 
             Spacer()
 
-            PreviewKeyboardView(keyboardHeight: $previewKeyboardHeight,
-                                keyboardSettingsHeight: keyboardHeight,
+            PreviewKeyboardView(keyboardSettingsHeight: keyboardHeight,
                                 oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
                                 letterColumnWidthMultiplier: $tempLetterColumnWidthMultiplier,
                                 needsInputModeSwitchKey: $needsInputModeSwitchKey,
@@ -61,7 +50,6 @@ struct LetterColumnWidthSettingsView: View {
                                 oneHandedMode: $previewOneHandedMode)
         }.onAppear {
             tempLetterColumnWidthMultiplier = letterColumnWidthMultiplier
-            updatePreviewKeyboardHeight()
         }.requestReviewOnDetailSettingsReturn()
     }
 }
@@ -121,22 +109,6 @@ private extension LetterColumnWidthSettingsView {
                 }
             }
         }
-    }
-}
-
-// MARK: - Private Methods
-
-private extension LetterColumnWidthSettingsView {
-    func updatePreviewKeyboardHeight() {
-        let isSuggestionBarVisible = KeyboardPresentationStatePolicy.isSuggestionBarVisibleForSettingsPreview(
-            isPredictiveTextEnabled: isPredictiveTextEnabled,
-            isUndoRedoEnabled: isUndoRedoEnabled,
-            isClipboardHistoryEnabled: isClipboardHistoryEnabled
-        )
-        let suggestionBarHeight = isSuggestionBarVisible
-        ? KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing + KeyboardLayoutFigure.keyboardFrameSpacing
-        : 0
-        previewKeyboardHeight = keyboardHeight + suggestionBarHeight
     }
 }
 
