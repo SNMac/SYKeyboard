@@ -16,6 +16,9 @@ struct InstructionsPageView: View {
     private let image: ImageResource
     private let description: String
     
+    /// 페이지 점 때문에 비워 두는 아래 여백. iPhone 13 mini 캡처에서 iOS 18.6·27.0 모두 오차 4pt 안으로 가운데에 오는 값이다
+    private static let pageIndicatorClearance: CGFloat = 24
+    
     // MARK: - Initializer
     
     init(title: String, subtitle: String = " ", image: ImageResource, description: String) {
@@ -53,6 +56,9 @@ struct InstructionsPageView: View {
                 .padding(.horizontal)
                 .lineLimit(3, reservesSpace: true)
         }
+        // 페이지는 닫기 버튼 막대 아래부터 시트 아래까지를 받고, 아래쪽에는 페이지 점이 겹쳐 그려진다.
+        // 점이 차지한 높이만큼 아래를 비워 내용이 닫기 버튼과 페이지 점 사이 가운데에 오게 한다
+        .padding(.bottom, Self.pageIndicatorClearance)
     }
 }
 
