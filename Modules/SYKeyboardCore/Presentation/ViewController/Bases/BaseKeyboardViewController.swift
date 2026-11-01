@@ -1006,6 +1006,9 @@ private extension BaseKeyboardViewController {
     }
 
     func setKeyboardHeight() {
+        // 미리보기 높이는 SwiftUI `frame`이 정한다. 설정 앱이 회전할 때 `viewWillTransition`에서 불려도
+        // 저장된 높이로 제약을 걸지 않는다
+        guard !BaseKeyboardViewController.isPreview else { return }
         guard let window = self.view.window else { return }
         let windowScene = window.windowScene
         let orientation = windowScene?.effectiveGeometry.interfaceOrientation ?? .unknown
