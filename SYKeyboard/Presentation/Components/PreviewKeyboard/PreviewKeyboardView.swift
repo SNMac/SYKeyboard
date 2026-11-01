@@ -79,8 +79,8 @@ private extension PreviewKeyboardView {
     /// 실제 키보드처럼 화면 size class로 세로·가로 높이 규칙을 고른다
     var usesPortraitHeight: Bool {
         KeyboardHeightPolicy.usesPortraitHeight(
-            horizontalSizeClass: horizontalSizeClass,
-            verticalSizeClass: verticalSizeClass
+            horizontalSizeClass: UIUserInterfaceSizeClass(horizontalSizeClass),
+            verticalSizeClass: UIUserInterfaceSizeClass(verticalSizeClass)
         )
     }
 
@@ -153,24 +153,5 @@ struct PreviewSettingsCompactRow<Value: View, SliderContent: View>: View {
         // 높이를 고정하지 않는다. 가로에서 아래 안내 문구와 미리보기 사이 간격을 남기고, iOS 버전마다 다른 컨트롤 높이를 따른다
         .padding(.vertical, 2)
         .padding(.horizontal)
-    }
-}
-
-// MARK: - KeyboardHeightPolicy Extension
-
-extension KeyboardHeightPolicy {
-    /// 설정 앱 화면의 size class로 실제 키보드와 같은 높이 규칙을 고른다. iPhone Duo 안쪽 화면은 가로여도 세로 높이 규칙이다.
-    /// iPhone의 size class는 항상 정해져 있어 `fallbackBounds`는 쓰이지 않는다
-    static func usesPortraitHeight(
-        horizontalSizeClass: UserInterfaceSizeClass?,
-        verticalSizeClass: UserInterfaceSizeClass?
-    ) -> Bool {
-        usesPortraitHeight(
-            orientation: .unknown,
-            usesOrientation: false,
-            fallbackBounds: .zero,
-            horizontalSizeClass: UIUserInterfaceSizeClass(horizontalSizeClass),
-            verticalSizeClass: UIUserInterfaceSizeClass(verticalSizeClass)
-        )
     }
 }

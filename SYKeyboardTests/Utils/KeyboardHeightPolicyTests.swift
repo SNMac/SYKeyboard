@@ -86,6 +86,21 @@ struct KeyboardHeightPolicyTests {
         #expect(usesPortraitHeight)
     }
 
+    // 설정 앱 미리보기는 화면 방향 없이 size class만으로 판단한다
+    @Test("size class만으로 판단하면 세로 높이 규칙은 iPhone 세로와 iPhone Duo 안쪽 화면",
+          arguments: [
+            // (horizontal, vertical, usesPortraitHeight)
+            (UIUserInterfaceSizeClass.compact, UIUserInterfaceSizeClass.regular, true),
+            (.compact, .compact, false),
+            (.regular, .compact, false),
+            (.regular, .regular, true),
+            (.unspecified, .unspecified, true)
+          ])
+    func testSizeClass판단(horizontal: UIUserInterfaceSizeClass, vertical: UIUserInterfaceSizeClass, expected: Bool) {
+        #expect(KeyboardHeightPolicy.usesPortraitHeight(horizontalSizeClass: horizontal,
+                                                       verticalSizeClass: vertical) == expected)
+    }
+
     // 세로: keyboard view = 설정값 + 보이는 suggestion bar, hstack = 설정값
     // 가로: keyboard view = 고정값, hstack = 고정값 - 보이는 suggestion bar
     @Test("설정 260·가로 고정 220·suggestion bar 44에서 화면 방향과 bar 표시에 따른 높이",

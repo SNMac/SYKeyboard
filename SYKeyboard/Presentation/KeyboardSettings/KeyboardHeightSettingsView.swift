@@ -64,8 +64,8 @@ private extension KeyboardHeightSettingsView {
 
     var heightNotice: some View {
         Group {
-            if KeyboardHeightPolicy.usesPortraitHeight(horizontalSizeClass: horizontalSizeClass,
-                                                       verticalSizeClass: verticalSizeClass) {
+            if KeyboardHeightPolicy.usesPortraitHeight(horizontalSizeClass: UIUserInterfaceSizeClass(horizontalSizeClass),
+                                                       verticalSizeClass: UIUserInterfaceSizeClass(verticalSizeClass)) {
                 Text("가로 모드에선 iOS 기본 키보드와 동일한 높이로 표시됩니다.\n(iPhone Duo의 안쪽 화면 제외)")
             } else {
                 // 가로 높이 규칙에서는 슬라이더를 움직여도 미리보기가 변하지 않는다
