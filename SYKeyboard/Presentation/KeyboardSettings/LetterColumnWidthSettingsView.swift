@@ -16,7 +16,6 @@ struct LetterColumnWidthSettingsView: View {
     // MARK: - Properties
 
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.verticalSizeClass) private var verticalSizeClass
 
     @AppStorage(UserDefaultsKeys.keyboardHeight, store: UserDefaultsManager.shared.storage)
     private var keyboardHeight = DefaultValues.keyboardHeight
@@ -61,26 +60,6 @@ private extension LetterColumnWidthSettingsView {
                step: 1)
     }
 
-    @ViewBuilder
-    var letterColumnWidthControls: some View {
-        if verticalSizeClass == .compact {
-            // 가로는 높이가 모자라 값과 슬라이더를 한 줄에 둔다
-            PreviewSettingsCompactRow {
-                widthValueText
-            } slider: {
-                widthSlider
-            }
-            .padding(.top, 8)
-        } else {
-            VStack {
-                widthValueText
-                    .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 0))
-                widthSlider
-                    .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
-            }
-        }
-    }
-
     /// 슬라이더용 정수 바인딩. 실수 step의 부동소수점 오차를 피한다
     var letterColumnWidthPercent: Binding<Double> {
         Binding(
@@ -90,11 +69,20 @@ private extension LetterColumnWidthSettingsView {
     }
 
     var letterColumnWidthSettings: some View {
-        // 세로처럼 다 들어가면 그대로 두고, 가로처럼 미리보기를 뺀 높이가 모자라면 이 부분만 스크롤한다
-        ViewThatFits(in: .vertical) {
-            letterColumnWidthControls
-            ScrollView {
-                letterColumnWidthControls
+        PreviewSettingsControls {
+            // 가로는 높이가 모자라 값과 슬라이더를 한 줄에 둔다
+            PreviewSettingsCompactRow {
+                widthValueText
+            } slider: {
+                widthSlider
+            }
+            .padding(.top, 8)
+        } regular: {
+            VStack {
+                widthValueText
+                    .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 0))
+                widthSlider
+                    .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
             }
         }
         .navigationTitle("글자 열 너비")

@@ -135,23 +135,3 @@ private extension PreviewKeyboardView {
         hasHomeIndicator = bottomSafeAreaInset > 0
     }
 }
-
-// MARK: - PreviewSettingsCompactRow
-
-/// 가로 설정 화면의 한 줄 배치: 값, 슬라이더
-struct PreviewSettingsCompactRow<Value: View, SliderContent: View>: View {
-    @ViewBuilder let value: () -> Value
-    @ViewBuilder let slider: () -> SliderContent
-
-    var body: some View {
-        HStack(spacing: 12) {
-            value()
-                .monospacedDigit()
-                .frame(minWidth: 40)
-            slider()
-        }
-        // 높이를 고정하지 않는다. 가로에서 아래 안내 문구와 미리보기 사이 간격을 남기고, iOS 버전마다 다른 컨트롤 높이를 따른다
-        .padding(.vertical, 2)
-        .padding(.horizontal)
-    }
-}

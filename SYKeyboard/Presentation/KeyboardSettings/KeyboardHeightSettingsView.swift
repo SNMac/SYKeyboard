@@ -76,9 +76,8 @@ private extension KeyboardHeightSettingsView {
         .multilineTextAlignment(.center)
     }
 
-    @ViewBuilder
-    var keyboardHeightControls: some View {
-        if verticalSizeClass == .compact {
+    var keyboardHeightSettings: some View {
+        PreviewSettingsControls {
             // 가로는 높이가 모자라 값과 슬라이더를 한 줄에 두고, 안내 문구와 붙어 보이지 않게 띄운다
             VStack(spacing: 8) {
                 PreviewSettingsCompactRow {
@@ -89,7 +88,7 @@ private extension KeyboardHeightSettingsView {
                 heightNotice
                     .padding(.horizontal)
             }
-        } else {
+        } regular: {
             VStack {
                 heightValueText
                     .padding(.top)
@@ -98,16 +97,6 @@ private extension KeyboardHeightSettingsView {
                     .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
                 heightNotice
                     .padding()
-            }
-        }
-    }
-
-    var keyboardHeightSettings: some View {
-        // 세로처럼 다 들어가면 그대로 두고, 가로처럼 미리보기를 뺀 높이가 모자라면 이 부분만 스크롤한다
-        ViewThatFits(in: .vertical) {
-            keyboardHeightControls
-            ScrollView {
-                keyboardHeightControls
             }
         }
         .navigationTitle("키보드 높이")

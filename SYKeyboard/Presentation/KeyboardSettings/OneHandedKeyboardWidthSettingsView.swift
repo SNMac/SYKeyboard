@@ -16,7 +16,6 @@ struct OneHandedKeyboardWidthSettingsView: View {
     // MARK: - Properties
     
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.verticalSizeClass) private var verticalSizeClass
     
     @AppStorage(UserDefaultsKeys.keyboardHeight, store: UserDefaultsManager.shared.storage)
     private var keyboardHeight = DefaultValues.keyboardHeight
@@ -60,9 +59,8 @@ private extension OneHandedKeyboardWidthSettingsView {
         Slider(value: $tempOneHandedKeyboardWidth, in: 300...340, step: 1)
     }
 
-    @ViewBuilder
-    var oneHandedKeyboardWidthControls: some View {
-        if verticalSizeClass == .compact {
+    var oneHandedKeyboardWidthSettings: some View {
+        PreviewSettingsControls {
             // 가로는 높이가 모자라 값과 슬라이더를 한 줄에 둔다
             PreviewSettingsCompactRow {
                 widthValueText
@@ -70,22 +68,12 @@ private extension OneHandedKeyboardWidthSettingsView {
                 widthSlider
             }
             .padding(.top, 8)
-        } else {
+        } regular: {
             VStack {
                 widthValueText
                     .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 0))
                 widthSlider
                     .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
-            }
-        }
-    }
-
-    var oneHandedKeyboardWidthSettings: some View {
-        // 세로처럼 다 들어가면 그대로 두고, 가로처럼 미리보기를 뺀 높이가 모자라면 이 부분만 스크롤한다
-        ViewThatFits(in: .vertical) {
-            oneHandedKeyboardWidthControls
-            ScrollView {
-                oneHandedKeyboardWidthControls
             }
         }
         .navigationTitle("한 손 키보드 너비")
