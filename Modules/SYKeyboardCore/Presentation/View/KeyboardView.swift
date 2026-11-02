@@ -52,7 +52,8 @@ final public class KeyboardView: UIInputView {
         let verticalMargin = KeyboardLayoutFigure.keyboardFrameSpacing / 2
         stackView.layoutMargins = UIEdgeInsets(top: verticalMargin, left: 0, bottom: verticalMargin, right: 0)
         stackView.isLayoutMarginsRelativeArrangement = true
-        stackView.insetsLayoutMarginsFromSafeArea = BaseKeyboardViewController.insetsLayoutMarginsFromSafeArea
+        // safe area는 `updateKeyboardHStackSafeAreaMargins(_:)`가 필요한 만큼만 여백에 더한다
+        stackView.insetsLayoutMarginsFromSafeArea = false
         
         return stackView
     }()
@@ -172,6 +173,18 @@ final public class KeyboardView: UIInputView {
     func updateOneHandedMode(_ mode: OneHandedMode) {
         leftChevronButton.isHidden = mode != .right
         rightChevronButton.isHidden = mode != .left
+    }
+
+    /// 키 영역 여백에 safe area를 더한다. 프레임 여백(위아래 반씩)은 그대로 두고 받은 만큼 안쪽으로 들인다.
+    /// 어느 safe area를 더할지는 `KeyboardSafeAreaPolicy`가 정한다
+    func updateKeyboardHStackSafeAreaMargins(_ insets: UIEdgeInsets) {
+        let verticalMargin = KeyboardLayoutFigure.keyboardFrameSpacing / 2
+        keyboardHStackView.layoutMargins = UIEdgeInsets(
+            top: verticalMargin + insets.top,
+            left: insets.left,
+            bottom: verticalMargin + insets.bottom,
+            right: insets.right
+        )
     }
 }
 

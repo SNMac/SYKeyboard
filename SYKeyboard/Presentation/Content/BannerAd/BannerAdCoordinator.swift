@@ -20,6 +20,9 @@ final class BannerAdCoordinator: NSObject {
     )
     
     private let parent: BannerAdView
+
+    /// 마지막으로 요청한 광고 크기. `BannerView.adSize`는 받은 광고에 따라 바뀌므로 다시 요청할지 판단하는 데 쓰지 않는다
+    var requestedAdSize: CGSize = .zero
     
     // MARK: - Initializer
     

@@ -26,22 +26,7 @@ struct LetterColumnWidthSettingsView: View {
     @AppStorage(UserDefaultsKeys.letterColumnWidthMultiplier, store: UserDefaultsManager.shared.storage)
     private var letterColumnWidthMultiplier = DefaultValues.letterColumnWidthMultiplier
 
-    @AppStorage(UserDefaultsKeys.isPredictiveTextEnabled, store: UserDefaultsManager.shared.storage)
-    private var isPredictiveTextEnabled = DefaultValues.isPredictiveTextEnabled
-
-    @AppStorage(UserDefaultsKeys.isUndoRedoEnabled, store: UserDefaultsManager.shared.storage)
-    private var isUndoRedoEnabled = DefaultValues.isUndoRedoEnabled
-
-    @AppStorage(UserDefaultsKeys.isClipboardHistoryEnabled, store: UserDefaultsManager.shared.storage)
-    private var isClipboardHistoryEnabled = DefaultValues.isClipboardHistoryEnabled
-
-    @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaultsManager.shared.storage)
-    private var needsInputModeSwitchKey = DefaultValues.needsInputModeSwitchKey
-
-    @AppStorage("previewKeyboardLanguage") private var previewKeyboardLanguage: PreviewKeyboardLanguage = .hangeul
-
     @State private var previewOneHandedMode: OneHandedMode = .center
-    @State private var previewKeyboardHeight: Double = DefaultValues.keyboardHeight
     @State private var tempLetterColumnWidthMultiplier: Double = DefaultValues.letterColumnWidthMultiplier
 
     // MARK: - Content
@@ -52,16 +37,12 @@ struct LetterColumnWidthSettingsView: View {
 
             Spacer()
 
-            PreviewKeyboardView(keyboardHeight: $previewKeyboardHeight,
-                                keyboardSettingsHeight: keyboardHeight,
+            PreviewKeyboardView(keyboardSettingsHeight: keyboardHeight,
                                 oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
                                 letterColumnWidthMultiplier: $tempLetterColumnWidthMultiplier,
-                                needsInputModeSwitchKey: $needsInputModeSwitchKey,
-                                previewKeyboardLanguage: $previewKeyboardLanguage,
                                 oneHandedMode: $previewOneHandedMode)
         }.onAppear {
             tempLetterColumnWidthMultiplier = letterColumnWidthMultiplier
-            updatePreviewKeyboardHeight()
         }.requestReviewOnDetailSettingsReturn()
     }
 }
@@ -69,6 +50,16 @@ struct LetterColumnWidthSettingsView: View {
 // MARK: - UI Components
 
 private extension LetterColumnWidthSettingsView {
+    var widthValueText: Text {
+        Text("\(Int(KeyboardLayoutFigure.letterColumnWidthPercent(fromMultiplier: tempLetterColumnWidthMultiplier)))")
+    }
+
+    var widthSlider: some View {
+        Slider(value: letterColumnWidthPercent,
+               in: KeyboardLayoutFigure.letterColumnWidthPercentRange,
+               step: 1)
+    }
+
     /// 슬라이더용 정수 바인딩. 실수 step의 부동소수점 오차를 피한다
     var letterColumnWidthPercent: Binding<Double> {
         Binding(
@@ -78,13 +69,21 @@ private extension LetterColumnWidthSettingsView {
     }
 
     var letterColumnWidthSettings: some View {
-        VStack {
-            Text("\(Int(KeyboardLayoutFigure.letterColumnWidthPercent(fromMultiplier: tempLetterColumnWidthMultiplier)))")
-                .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 0))
-            Slider(value: letterColumnWidthPercent,
-                   in: KeyboardLayoutFigure.letterColumnWidthPercentRange,
-                   step: 1)
-                .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
+        PreviewSettingsControls {
+            // 가로는 높이가 모자라 값과 슬라이더를 한 줄에 둔다
+            PreviewSettingsCompactRow {
+                widthValueText
+            } slider: {
+                widthSlider
+            }
+            .padding(.top, 8)
+        } regular: {
+            VStack {
+                widthValueText
+                    .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 0))
+                widthSlider
+                    .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
+            }
         }
         .navigationTitle("글자 열 너비")
         .navigationBarTitleDisplayMode(.inline)
@@ -121,22 +120,6 @@ private extension LetterColumnWidthSettingsView {
                 }
             }
         }
-    }
-}
-
-// MARK: - Private Methods
-
-private extension LetterColumnWidthSettingsView {
-    func updatePreviewKeyboardHeight() {
-        let isSuggestionBarVisible = KeyboardPresentationStatePolicy.isSuggestionBarVisibleForSettingsPreview(
-            isPredictiveTextEnabled: isPredictiveTextEnabled,
-            isUndoRedoEnabled: isUndoRedoEnabled,
-            isClipboardHistoryEnabled: isClipboardHistoryEnabled
-        )
-        let suggestionBarHeight = isSuggestionBarVisible
-        ? KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing + KeyboardLayoutFigure.keyboardFrameSpacing
-        : 0
-        previewKeyboardHeight = keyboardHeight + suggestionBarHeight
     }
 }
 

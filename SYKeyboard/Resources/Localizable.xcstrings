@@ -173,6 +173,16 @@
         }
       }
     },
+    "가로 모드에서는 높이 설정이 미리보기에 반영되지 않습니다.\n세로 모드와 iPhone Duo의 안쪽 화면에 적용됩니다." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In landscape mode, the height setting isn't reflected in the preview.\nIt applies in portrait mode and on the inner display of iPhone Duo."
+          }
+        }
+      }
+    },
     "가로 모드에선 iOS 기본 키보드와 동일한 높이로 표시됩니다.\n(iPhone Duo의 안쪽 화면 제외)" : {
       "localizations" : {
         "en" : {
@@ -782,16 +792,6 @@
         }
       }
     },
-    "영어 키보드" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "English Keyboard"
-          }
-        }
-      }
-    },
     "오류가 발생했습니다" : {
       "localizations" : {
         "en" : {
@@ -1148,16 +1148,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Display predicted text at the top of the keyboard"
-          }
-        }
-      }
-    },
-    "키보드 언어" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keyboard Language"
           }
         }
       }

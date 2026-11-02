@@ -337,11 +337,13 @@
 				SYKeyboardCore/Presentation/Utils/Policies/ClipboardImagePolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/CursorDragAccelerationPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardColumnWidthPolicy.swift,
+				SYKeyboardCore/Presentation/Utils/Policies/KeyboardFrameInsetsPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardGesturePolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardHeightPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardLanguageModePolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardPeriodShortcutPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardPresentationStatePolicy.swift,
+				SYKeyboardCore/Presentation/Utils/Policies/KeyboardSafeAreaPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardSelectDirectionPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardSentTextDetectionPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardSmartInputPolicy.swift,
@@ -445,11 +447,13 @@
 				SYKeyboardCore/Presentation/Utils/Policies/ClipboardImagePolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/CursorDragAccelerationPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardColumnWidthPolicy.swift,
+				SYKeyboardCore/Presentation/Utils/Policies/KeyboardFrameInsetsPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardGesturePolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardHeightPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardLanguageModePolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardPeriodShortcutPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardPresentationStatePolicy.swift,
+				SYKeyboardCore/Presentation/Utils/Policies/KeyboardSafeAreaPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardSelectDirectionPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardSentTextDetectionPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardSmartInputPolicy.swift,
@@ -1686,7 +1690,7 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1733,7 +1737,7 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
