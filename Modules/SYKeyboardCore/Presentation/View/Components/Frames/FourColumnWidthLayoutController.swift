@@ -9,17 +9,29 @@ import UIKit
 ///
 /// 각 행의 1~3열은 서로 등폭이고 4열만 배율에 따라 폭이 바뀐다.
 /// 등폭 제약은 배율과 무관하므로 한 번만 만들고,
-/// 4열 제약만 배율이 바뀔 때 다시 만든다
+/// 4열 제약만 배율이 바뀔 때 다시 만든다.
+///
+/// 분할 자판에서는 2열과 3열 사이에 간격을 넣고 네 열을 등폭으로 둔다.
+/// 배율을 그대로 쓰면 왼쪽 반쪽(글자 열 둘)과 오른쪽 반쪽(글자 열 + 기능 열)의 폭이 달라져
+/// 간격이 접히는 선에서 벗어난다
 final class FourColumnWidthLayoutController {
 
     // MARK: - Properties
 
     private var rows: [UIStackView] = []
+    /// `install` 시점의 행별 4열. 분할 간격을 넣은 뒤에도 열 순서를 그대로 쓴다
+    private var rowColumns: [[UIView]] = []
     private weak var referenceView: UIView?
     /// 배율이 바뀌면 다시 만들어야 하는 제약
     private var ratioConstraints: [NSLayoutConstraint] = []
+    /// 분할 자판에서만 쓰는 4열 등폭 제약
+    private var splitConstraints: [NSLayoutConstraint] = []
+    /// 행별 분할 간격. `installSplitGaps()`를 부르기 전에는 비어 있다
+    private var splitGaps: [KeyboardSpacer] = []
     /// 마지막으로 적용한 배율. 값이 그대로면 제약을 다시 만들지 않는다
     private var currentMultiplier: Double?
+    /// 분할 자판 여부
+    private var usesSplitLayout = false
 
     // MARK: - Internal Methods
 
@@ -34,6 +46,7 @@ final class FourColumnWidthLayoutController {
                  referenceView: UIView,
                  multiplier: Double) {
         self.rows = rows
+        self.rowColumns = rows.map(\.arrangedSubviews)
         self.referenceView = referenceView
 
         for row in rows {
@@ -54,6 +67,46 @@ final class FourColumnWidthLayoutController {
 
         currentMultiplier = multiplier
         activateRatioConstraints(multiplier: multiplier)
+    }
+
+    /// 각 행의 2열과 3열 사이에 분할 간격을 넣습니다. 간격은 분할 자판에서만 보입니다.
+    ///
+    /// `install(rows:referenceView:multiplier:)` 뒤에 한 번 호출해야 합니다
+    func installSplitGaps() {
+        guard splitGaps.isEmpty else { return }
+
+        let gapRatio = KeyboardSplitLayoutPolicy.gapToColumnRatio(columnCount: KeyboardLayoutFigure.fourColumnCount)
+        for (row, columns) in zip(rows, rowColumns) where columns.count == KeyboardLayoutFigure.fourColumnCount {
+            let gap = KeyboardSpacer()
+            gap.isHidden = true
+            row.insertArrangedSubview(gap, at: 2)
+            // 숨겨진 동안에는 `UIStackView`의 숨김 제약(폭 0)이 이겨야 하므로 required보다 낮춘다
+            let gapWidth = gap.widthAnchor.constraint(equalTo: columns[0].widthAnchor, multiplier: gapRatio)
+            gapWidth.priority = .init(999)
+            gapWidth.isActive = true
+            splitGaps.append(gap)
+
+            splitConstraints.append(columns[3].widthAnchor.constraint(equalTo: columns[0].widthAnchor))
+        }
+    }
+
+    /// 분할 자판 여부를 바꿉니다. 분할하면 네 열을 등폭으로 두고 간격을 보이고,
+    /// 돌아오면 배율 제약을 다시 씁니다
+    func updateSplitLayout(_ usesSplitLayout: Bool) {
+        guard usesSplitLayout != self.usesSplitLayout else { return }
+        self.usesSplitLayout = usesSplitLayout
+
+        splitGaps.forEach { $0.isHidden = !usesSplitLayout }
+        if usesSplitLayout {
+            NSLayoutConstraint.deactivate(ratioConstraints)
+            NSLayoutConstraint.activate(splitConstraints)
+        } else {
+            NSLayoutConstraint.deactivate(splitConstraints)
+            NSLayoutConstraint.activate(ratioConstraints)
+        }
+
+        rows.forEach { $0.setNeedsLayout() }
+        referenceView?.setNeedsLayout()
     }
 
     /// 배율이 바뀌면 4열 제약만 다시 만듭니다.
@@ -79,8 +132,7 @@ private extension FourColumnWidthLayoutController {
     func activateRatioConstraints(multiplier: Double) {
         let functionColumnRatio = KeyboardColumnWidthPolicy.functionColumnRatio(multiplier: multiplier)
 
-        for row in rows {
-            let columns = row.arrangedSubviews
+        for (row, columns) in zip(rows, rowColumns) {
             guard columns.count == KeyboardLayoutFigure.fourColumnCount else { continue }
 
             ratioConstraints.append(
@@ -89,6 +141,8 @@ private extension FourColumnWidthLayoutController {
             )
         }
 
+        // 분할 중에는 등폭 제약을 쓰므로 만들어만 두고 돌아올 때 켠다
+        guard !usesSplitLayout else { return }
         NSLayoutConstraint.activate(ratioConstraints)
     }
 }

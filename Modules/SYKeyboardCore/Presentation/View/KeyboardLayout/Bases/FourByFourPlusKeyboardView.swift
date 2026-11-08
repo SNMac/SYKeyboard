@@ -170,6 +170,13 @@ extension FourByFourPlusKeyboardView {
         columnWidthLayoutController.update(multiplier: multiplier)
         setNeedsLayout()
     }
+
+    /// 분할 자판 여부를 적용합니다. 2열과 3열 사이를 비운다
+    public func updateSplitLayout(_ usesSplitLayout: Bool) {
+        columnWidthLayoutController.updateSplitLayout(usesSplitLayout)
+        numberRow.updateSplitLayout(usesSplitLayout)
+        setNeedsLayout()
+    }
 }
 
 // MARK: - UI Methods
@@ -255,6 +262,10 @@ private extension FourByFourPlusKeyboardView {
                    fourthRowHStackView],
             referenceView: self,
             multiplier: UserDefaultsManager.shared.letterColumnWidthMultiplier
+        )
+        columnWidthLayoutController.installSplitGaps()
+        numberRow.installSplitGap(
+            gapToKeyRatio: KeyboardSplitLayoutPolicy.gapToColumnRatio(columnCount: numberRow.buttonList.count)
         )
 
         keyboardSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false

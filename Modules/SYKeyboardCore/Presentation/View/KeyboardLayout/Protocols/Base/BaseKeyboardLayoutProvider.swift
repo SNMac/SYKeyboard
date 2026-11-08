@@ -21,4 +21,11 @@ public protocol BaseKeyboardLayoutProvider: UIView {
     var totalTextInterableButtonList: [TextInteractable] { get }
     /// 삭제 버튼
     var deleteButton: DeleteButton { get }
+    /// 분할 자판 여부를 적용한다. 분할 여부는 `KeyboardSplitLayoutPolicy`가 정한다
+    func updateSplitLayout(_ usesSplitLayout: Bool)
+}
+
+public extension BaseKeyboardLayoutProvider {
+    /// 기본값은 분할 배치가 없는 키보드(테스트용 자판 등)를 위한 것이다
+    func updateSplitLayout(_ usesSplitLayout: Bool) {}
 }

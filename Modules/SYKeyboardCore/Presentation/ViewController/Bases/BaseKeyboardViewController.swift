@@ -148,6 +148,9 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// `keyboardHStackView` 높이 제약 조건
     private var keyboardHStackViewHeightConstraint: NSLayoutConstraint?
 
+    /// 힌지가 마지막으로 알려 준 접힘 상태. 힌지가 없는 기기와 iOS 27.1 미만에서는 `.unknown`에 머문다
+    private var foldState: KeyboardSplitLayoutPolicy.FoldState = .unknown
+
     /// 현재 반복 입력 동작 중인지 확인하는 플래그
     public var isRepeatingInput: Bool { textDeletionCoordinator.isRepeatingInput }
     /// 첫 표시 이후 자동완성 준비를 한 번만 시작했는지 여부
@@ -319,6 +322,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         if BaseKeyboardViewController.isPreview { updateReturnButtonType() }
 
         if keyboardSettingsManager.isOneHandedKeyboardEnabled { updateOneHandModekeyboard() }
+        installHingeInteraction()
 
         // 사용자 설정을 SuggestionController에 전달 — 엔진 생성은 첫 표시 이후로 지연
         suggestionController.isTextReplacementEnabled = keyboardSettingsManager.isTextReplacementEnabled
@@ -351,6 +355,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         super.viewWillAppear(animated)
         logger.debug("viewWillAppear")
         if !BaseKeyboardViewController.isPreview { setKeyboardHeight() }
+        updateSplitLayout()
         clipboardHistoryCoordinator.synchronizeIfNeeded()
         // 시뮬레이터(iOS 18.6)에서는 키보드가 나타날 때마다 새 VC라 엔진 캐시도 새로 읽지만, 같은 VC가 다시 나타나는 경우에 대비한다
         suggestionController.invalidateLearnedWordsCache()
@@ -374,13 +379,21 @@ open class BaseKeyboardViewController: UIInputViewController {
         super.viewDidAppear(animated)
         KeyboardDiagnostics.log("keyboard appeared")
         updateEdgeTouchSystemGesturePolicy()
+        // `viewWillAppear`에서는 window가 아직 없어 화면 방향을 모를 수 있다
+        updateSplitLayout()
         startDeferredSuggestionPreparationIfNeeded()
     }
 
     open override func viewWillTransition(to size: CGSize, with coordinator: any UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         logger.debug("viewWillTransition")
-        coordinator.animate { [weak self] _ in self?.setKeyboardHeight() }
+        coordinator.animate { [weak self] _ in
+            self?.setKeyboardHeight()
+            self?.updateSplitLayout()
+        } completion: { [weak self] _ in
+            // 회전이 끝난 뒤의 화면 방향으로 한 번 더 맞춘다
+            self?.updateSplitLayout()
+        }
     }
 
     open override func viewSafeAreaInsetsDidChange() {
@@ -1406,6 +1419,49 @@ private extension BaseKeyboardViewController {
 
     func updateOneHandModekeyboard() {
         keyboardView.updateOneHandedMode(currentOneHandedMode)
+        // 한 손 모드를 켜거나 끄면 분할 여부도 바뀐다
+        updateSplitLayout()
+    }
+
+    /// 접힘 상태·화면 방향·한 손 모드로 분할 자판 여부를 정해 적용한다
+    func updateSplitLayout() {
+        let isLandscape = view.window?.windowScene?.effectiveGeometry.interfaceOrientation.isLandscape ?? false
+        let isSplitConditionMet = KeyboardSplitLayoutPolicy.isSplitConditionMet(
+            foldState: foldState,
+            isLandscape: isLandscape
+        )
+        let usesSplitLayout = KeyboardSplitLayoutPolicy.usesSplitLayout(
+            isSplitConditionMet: isSplitConditionMet,
+            oneHandedMode: splitDecisionOneHandedMode
+        )
+        keyboardView.updateSplitLayout(usesSplitLayout: usesSplitLayout, isSplitConditionMet: isSplitConditionMet)
+    }
+
+    /// 분할 여부 판단에 쓰는 한 손 모드. 한 손 키보드 설정이 꺼져 있으면 마지막 모드와 관계없이 가운데다
+    var splitDecisionOneHandedMode: OneHandedMode {
+        if BaseKeyboardViewController.isPreview { return previewOneHandedMode }
+        guard keyboardSettingsManager.isOneHandedKeyboardEnabled else { return .center }
+        return keyboardSettingsManager.lastOneHandedMode
+    }
+
+    /// 힌지 상태를 받는 interaction을 붙인다.
+    ///
+    /// iOS 27.1 iPhone Duo 시뮬레이터에서는 키보드 확장에 힌지 업데이트가 오지 않고(설정 앱 미리보기에는 온다),
+    /// 실기기에서는 확인하지 못했다. 업데이트가 오지 않으면 `.unknown`에 머물러 분할하지 않는다
+    func installHingeInteraction() {
+        guard #available(iOS 27.1, *) else { return }
+        let interaction = UIHingeInteraction { [weak self] _, update in
+            self?.foldStateDidChange(KeyboardSplitLayoutPolicy.FoldState(hingeStatus: update.hinge?.status))
+        }
+        view.addInteraction(interaction)
+    }
+
+    func foldStateDidChange(_ newFoldState: KeyboardSplitLayoutPolicy.FoldState) {
+        // 펼치는 동안 같은 상태가 여러 번 연달아 온다
+        guard newFoldState != foldState else { return }
+        logger.debug("접힘 상태 변경: \(String(describing: newFoldState))")
+        foldState = newFoldState
+        updateSplitLayout()
     }
 
     func updateShowingKeyboard() {
@@ -1948,3 +2004,18 @@ extension BaseKeyboardViewController: TextDeletionHost {
 // MARK: - UndoRedoHost
 
 extension BaseKeyboardViewController: UndoRedoHost {}
+
+// MARK: - Fold State
+
+@available(iOS 27.1, *)
+private extension KeyboardSplitLayoutPolicy.FoldState {
+    init(hingeStatus: UIHinge.Status?) {
+        switch hingeStatus {
+        case .closed: self = .closed
+        case .partiallyOpen: self = .partiallyOpen
+        case .fullyOpen: self = .fullyOpen
+        case .unknown, .none: self = .unknown
+        @unknown default: self = .unknown
+        }
+    }
+}
