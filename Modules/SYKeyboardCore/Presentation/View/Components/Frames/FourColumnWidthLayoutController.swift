@@ -77,13 +77,9 @@ final class FourColumnWidthLayoutController {
 
         let gapRatio = KeyboardSplitLayoutPolicy.gapToColumnRatio(columnCount: KeyboardLayoutFigure.fourColumnCount)
         for (row, columns) in zip(rows, rowColumns) where columns.count == KeyboardLayoutFigure.fourColumnCount {
-            let gap = KeyboardSpacer()
-            gap.isHidden = true
+            let gap = KeyboardSplitViews.makeHiddenSpacer()
             row.insertArrangedSubview(gap, at: 2)
-            // 숨겨진 동안에는 `UIStackView`의 숨김 제약(폭 0)이 이겨야 하므로 required보다 낮춘다
-            let gapWidth = gap.widthAnchor.constraint(equalTo: columns[0].widthAnchor, multiplier: gapRatio)
-            gapWidth.priority = .init(999)
-            gapWidth.isActive = true
+            KeyboardSplitViews.activateHideableWidth(of: gap, equalTo: columns[0], multiplier: gapRatio)
             splitGaps.append(gap)
 
             splitConstraints.append(columns[3].widthAnchor.constraint(equalTo: columns[0].widthAnchor))

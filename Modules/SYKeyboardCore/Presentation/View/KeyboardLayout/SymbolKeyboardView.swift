@@ -101,12 +101,12 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     }()
     
     /// 분할 자판에서 각 줄 가운데를 비우는 간격. 평소에는 숨긴다
-    private let firstRowSplitGap = SymbolKeyboardView.makeHiddenSpacer()
-    private let secondRowSplitGap = SymbolKeyboardView.makeHiddenSpacer()
-    private let thirdRowSplitGap = SymbolKeyboardView.makeHiddenSpacer()
-    private let fourthRowSplitGap = SymbolKeyboardView.makeHiddenSpacer()
+    private let firstRowSplitGap = KeyboardSplitViews.makeHiddenSpacer()
+    private let secondRowSplitGap = KeyboardSplitViews.makeHiddenSpacer()
+    private let thirdRowSplitGap = KeyboardSplitViews.makeHiddenSpacer()
+    private let fourthRowSplitGap = KeyboardSplitViews.makeHiddenSpacer()
     /// 스페이스가 없는 입력 모드(URL)의 분할 자판에서 왼쪽 반쪽 넷째 줄을 채우는 빈칸
-    private let leftSpaceFillerSpacer = SymbolKeyboardView.makeHiddenSpacer()
+    private let leftSpaceFillerSpacer = KeyboardSplitViews.makeHiddenSpacer()
 
     /// 키보드 숫자 행
     private lazy var numberRow = KeyboardNumberRow(isEnabled: showsNumberRowSetting)
@@ -273,16 +273,10 @@ private extension SymbolKeyboardView {
             for button in buttons where button !== columnReferenceView {
                 button.widthAnchor.constraint(equalTo: columnReferenceView.widthAnchor).isActive = true
             }
-            activateSplitGapWidth(gap,
-                                  columnReferenceView: columnReferenceView,
-                                  columnCount: KeyboardSplitLayoutPolicy.edgeAlignedRowGapColumnCount)
+            KeyboardSplitViews.activateHideableWidth(of: gap, equalTo: columnReferenceView, multiplier: KeyboardSplitLayoutPolicy.edgeAlignedRowGapColumnCount)
         }
-        activateSplitGapWidth(thirdRowSplitGap,
-                              columnReferenceView: columnReferenceView,
-                              columnCount: KeyboardSplitLayoutPolicy.gapColumnCount)
-        activateSplitGapWidth(fourthRowSplitGap,
-                              columnReferenceView: columnReferenceView,
-                              columnCount: KeyboardSplitLayoutPolicy.gapColumnCount)
+        KeyboardSplitViews.activateHideableWidth(of: thirdRowSplitGap, equalTo: columnReferenceView, multiplier: KeyboardSplitLayoutPolicy.gapColumnCount)
+        KeyboardSplitViews.activateHideableWidth(of: fourthRowSplitGap, equalTo: columnReferenceView, multiplier: KeyboardSplitLayoutPolicy.gapColumnCount)
 
         updateThirdRowWidthConstraints()
         
@@ -403,28 +397,14 @@ private extension SymbolKeyboardView {
         ])
     }
 
-    /// 분할 간격 폭을 열 폭 기준으로 건다.
-    /// 숨겨진 동안에는 `UIStackView`의 숨김 제약(폭 0)이 이겨야 하므로 required보다 낮춘다
-    func activateSplitGapWidth(_ gap: UIView, columnReferenceView: UIView, columnCount: CGFloat) {
-        let width = gap.widthAnchor.constraint(equalTo: columnReferenceView.widthAnchor, multiplier: columnCount)
-        width.priority = .init(999)
-        width.isActive = true
-    }
-
-    static func makeHiddenSpacer() -> KeyboardSpacer {
-        let spacer = KeyboardSpacer()
-        spacer.isHidden = true
-
-        return spacer
-    }
-
-    /// 분할 자판 넷째 줄 왼쪽 반쪽을 채운다. 스페이스가 있는 입력 모드면 스페이스를,
-    /// 없는 모드(URL)면 빈칸을 둔다. 입력 모드가 바뀔 때마다 `updateKeyButtonList()`에서 다시 맞춘다
+    /// 분할 자판 넷째 줄 왼쪽 반쪽을 채운다. 입력 모드가 바뀔 때마다 `updateKeyButtonList()`에서 다시 맞춘다
     func updateSplitLeftSpaceVisibility() {
-        let showsLeftSpace = usesSplitLayout && !spaceButton.isHidden
-        let showsFiller = usesSplitLayout && spaceButton.isHidden
-        if leftSpaceButton.isHidden == showsLeftSpace { leftSpaceButton.isHidden = !showsLeftSpace }
-        if leftSpaceFillerSpacer.isHidden == showsFiller { leftSpaceFillerSpacer.isHidden = !showsFiller }
+        KeyboardSplitViews.updateLeftHalfSpace(
+            leftSpaceButton: leftSpaceButton,
+            filler: leftSpaceFillerSpacer,
+            usesSplitLayout: usesSplitLayout,
+            isSpaceHidden: spaceButton.isHidden
+        )
     }
 
     /// `switchButton`과 한영 전환 버튼의 합이 리턴 버튼 너비와 같아지는 `switchButton` 계수

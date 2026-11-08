@@ -1471,16 +1471,12 @@ private extension BaseKeyboardViewController {
         )
         let usesSplitLayout = KeyboardSplitLayoutPolicy.usesSplitLayout(
             isSplitConditionMet: isSplitConditionMet,
-            oneHandedMode: splitDecisionOneHandedMode
+            // 미리보기는 한 손 키보드 설정과 관계없이 미리보기 모드를 그대로 보여 준다
+            isOneHandedKeyboardEnabled: BaseKeyboardViewController.isPreview
+            || keyboardSettingsManager.isOneHandedKeyboardEnabled,
+            oneHandedMode: currentOneHandedMode
         )
         keyboardView.updateSplitLayout(usesSplitLayout: usesSplitLayout, isSplitConditionMet: isSplitConditionMet)
-    }
-
-    /// 분할 여부 판단에 쓰는 한 손 모드. 한 손 키보드 설정이 꺼져 있으면 마지막 모드와 관계없이 가운데다
-    var splitDecisionOneHandedMode: OneHandedMode {
-        if BaseKeyboardViewController.isPreview { return previewOneHandedMode }
-        guard keyboardSettingsManager.isOneHandedKeyboardEnabled else { return .center }
-        return keyboardSettingsManager.lastOneHandedMode
     }
 
     /// 힌지 상태를 받는 interaction을 붙인다.

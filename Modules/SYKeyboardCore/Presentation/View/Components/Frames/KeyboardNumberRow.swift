@@ -86,13 +86,9 @@ final class KeyboardNumberRow {
             $0.widthAnchor.constraint(equalTo: firstButton.widthAnchor).isActive = true
         }
 
-        let gap = KeyboardSpacer()
-        gap.isHidden = true
+        let gap = KeyboardSplitViews.makeHiddenSpacer()
         hStackView.insertArrangedSubview(gap, at: buttonList.count / 2)
-        // 숨겨진 동안에는 `UIStackView`의 숨김 제약(폭 0)이 이겨야 하므로 required보다 낮춘다
-        let gapWidth = gap.widthAnchor.constraint(equalTo: firstButton.widthAnchor, multiplier: gapToKeyRatio)
-        gapWidth.priority = .init(999)
-        gapWidth.isActive = true
+        KeyboardSplitViews.activateHideableWidth(of: gap, equalTo: firstButton, multiplier: gapToKeyRatio)
         splitGap = gap
     }
 

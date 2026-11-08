@@ -31,17 +31,26 @@ struct KeyboardSplitLayoutPolicyTests {
         #expect(KeyboardSplitLayoutPolicy.isSplitConditionMet(foldState: foldState, isLandscape: isLandscape) == expected)
     }
 
+    // 분할 조건, 한 손 키보드 설정, 마지막 한 손 모드, 기대값
     @Test("한 손 모드가 켜져 있으면 분할 조건을 충족해도 나누지 않음",
           arguments: [
-            (true, OneHandedMode.center, true),
-            (true, .left, false),
-            (true, .right, false),
-            (false, .center, false),
-            (false, .left, false)
+            (true, true, OneHandedMode.center, true),
+            (true, true, .left, false),
+            (true, true, .right, false),
+            // 설정이 꺼져 있으면 마지막 한 손 모드가 남아 있어도 한 손 모드가 아니다
+            (true, false, .left, true),
+            (false, true, .center, false),
+            (false, false, .center, false)
           ])
-    func test분할여부_한손모드(isSplitConditionMet: Bool, oneHandedMode: OneHandedMode, expected: Bool) {
+    func test분할여부_한손모드(
+        isSplitConditionMet: Bool,
+        isOneHandedKeyboardEnabled: Bool,
+        oneHandedMode: OneHandedMode,
+        expected: Bool
+    ) {
         #expect(KeyboardSplitLayoutPolicy.usesSplitLayout(
             isSplitConditionMet: isSplitConditionMet,
+            isOneHandedKeyboardEnabled: isOneHandedKeyboardEnabled,
             oneHandedMode: oneHandedMode
         ) == expected)
     }
@@ -75,7 +84,7 @@ struct KeyboardSplitLayoutPolicyTests {
         #expect(abs(columnWidth - 57) < 0.5)
     }
 
-    @Test("기호 자판 셋째 줄 키는 분할하면 양 끝 키 터치 영역보다 좁아짐")
+    @Test("기호 자판 셋째 줄 키는 분할하면 1.4열에서 1.3열로 좁아지고, 양 끝 키 터치 영역(1.55열) 안에 그려짐")
     func test기호셋째줄배율() {
         let normal = KeyboardSplitLayoutPolicy.symbolThirdRowButtonWidthMultiplier(usesSplitLayout: false)
         let split = KeyboardSplitLayoutPolicy.symbolThirdRowButtonWidthMultiplier(usesSplitLayout: true)
@@ -83,7 +92,8 @@ struct KeyboardSplitLayoutPolicyTests {
         let edgeKeyWidth = KeyboardSplitLayoutPolicy.halfColumnCount
         - KeyboardLayoutFigure.shiftAndDeleteButtonWidthMultiplier - split * 2
 
-        #expect(normal == KeyboardLayoutFigure.symbolThirdRowButtonWidthMultiplier)
-        #expect(edgeKeyWidth >= split)
+        #expect(abs(normal - 1.4) < Self.tolerance)
+        #expect(abs(split - 1.3) < Self.tolerance)
+        #expect(abs(edgeKeyWidth - 1.55) < Self.tolerance)
     }
 }

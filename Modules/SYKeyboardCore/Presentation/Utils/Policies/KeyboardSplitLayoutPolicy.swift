@@ -36,9 +36,16 @@ public enum KeyboardSplitLayoutPolicy {
         return foldState == .partiallyOpen && isLandscape
     }
 
-    /// 분할 자판을 쓸지. 한 손 모드가 켜져 있으면 사용자가 고른 한 손 키보드를 그대로 둔다
-    static func usesSplitLayout(isSplitConditionMet: Bool, oneHandedMode: OneHandedMode) -> Bool {
-        return isSplitConditionMet && oneHandedMode == .center
+    /// 분할 자판을 쓸지. 한 손 모드가 켜져 있으면 사용자가 고른 한 손 키보드를 그대로 둔다.
+    ///
+    /// 한 손 키보드 설정이 꺼져 있으면 마지막으로 쓴 한 손 모드가 남아 있어도 한 손 모드가 아니다
+    static func usesSplitLayout(
+        isSplitConditionMet: Bool,
+        isOneHandedKeyboardEnabled: Bool,
+        oneHandedMode: OneHandedMode
+    ) -> Bool {
+        guard isSplitConditionMet else { return false }
+        return !isOneHandedKeyboardEnabled || oneHandedMode == .center
     }
 
     // MARK: - 열 배치
