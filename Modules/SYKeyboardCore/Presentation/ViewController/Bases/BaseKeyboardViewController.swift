@@ -147,6 +147,13 @@ open class BaseKeyboardViewController: UIInputViewController {
     private var keyboardViewHeightConstraint: NSLayoutConstraint?
     /// `keyboardHStackView` 높이 제약 조건
     private var keyboardHStackViewHeightConstraint: NSLayoutConstraint?
+    /// `setKeyboardHeight()`가 정한 키 영역 높이. 시스템이 키보드를 키우면 여기에 늘어난 만큼을 더한다
+    private var requestedKeyboardHStackViewHeight: CGFloat?
+    /// 키보드가 다 올라와 높이가 안정된 상태인지.
+    ///
+    /// 올라오는 동안과 회전·접기 전환 중에는 시스템이 키보드 높이를 잠깐씩 크게 잡는다.
+    /// 그때 키 영역을 맞추면 키 행이 늘어났다 줄어드는 글리치가 보이므로, 안정된 뒤에만 늘어난 높이를 채운다
+    private var isKeyboardHeightSettled = false
 
     /// 힌지가 마지막으로 알려 준 접힘 상태. 힌지가 없는 기기와 iOS 27.1 미만에서는 `.unknown`에 머문다
     private var foldState: KeyboardSplitLayoutPolicy.FoldState = .unknown
@@ -381,18 +388,29 @@ open class BaseKeyboardViewController: UIInputViewController {
         updateEdgeTouchSystemGesturePolicy()
         // `viewWillAppear`에서는 window가 아직 없어 화면 방향을 모를 수 있다
         updateSplitLayout()
+        isKeyboardHeightSettled = true
+        fillSystemEnlargedKeyboardHeightIfNeeded()
         startDeferredSuggestionPreparationIfNeeded()
+    }
+
+    open override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        // iPhone Duo를 세로로 둔 채 펼침 상태만 바꾸면 전환 콜백 없이 높이만 바뀐다
+        fillSystemEnlargedKeyboardHeightIfNeeded()
     }
 
     open override func viewWillTransition(to size: CGSize, with coordinator: any UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         logger.debug("viewWillTransition")
+        isKeyboardHeightSettled = false
         coordinator.animate { [weak self] _ in
             self?.setKeyboardHeight()
             self?.updateSplitLayout()
         } completion: { [weak self] _ in
             // 회전이 끝난 뒤의 화면 방향으로 한 번 더 맞춘다
             self?.updateSplitLayout()
+            self?.isKeyboardHeightSettled = true
+            self?.fillSystemEnlargedKeyboardHeightIfNeeded()
         }
     }
 
@@ -480,6 +498,7 @@ open class BaseKeyboardViewController: UIInputViewController {
 
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        isKeyboardHeightSettled = false
         KeyboardDiagnostics.log("keyboard will disappear")
         textDeletionCoordinator.stopRepeatInputTracking()
         clipboardHistoryCoordinator.closePanelIfNeeded()
@@ -1073,6 +1092,7 @@ private extension BaseKeyboardViewController {
             keyboardViewHeightConstraint = heightConstraint
         }
 
+        requestedKeyboardHStackViewHeight = height.keyboardHStackViewHeight
         if let keyboardHStackViewHeightConstraint {
             keyboardHStackViewHeightConstraint.constant = height.keyboardHStackViewHeight
         } else {
@@ -1080,6 +1100,25 @@ private extension BaseKeyboardViewController {
             heightConstraint.isActive = true
             keyboardHStackViewHeightConstraint = heightConstraint
         }
+        fillSystemEnlargedKeyboardHeightIfNeeded()
+    }
+
+    /// 시스템이 키보드를 요청한 높이보다 키웠으면 늘어난 만큼 키 영역을 키운다.
+    ///
+    /// iPhone Duo를 반쯤 펼친 세로에서 시스템은 키보드 높이 제약(우선순위 999)을 덮어써 키보드를 키운다.
+    /// 키 영역은 아래에 붙어 있으므로 그대로 두면 자동완성 바 위에 빈 띠가 남는다.
+    /// 높이가 안정된 뒤에만 맞춘다(`isKeyboardHeightSettled`)
+    func fillSystemEnlargedKeyboardHeightIfNeeded() {
+        guard isKeyboardHeightSettled,
+              !BaseKeyboardViewController.isPreview,
+              let requestedKeyboardViewHeight = keyboardViewHeightConstraint?.constant,
+              let requestedKeyboardHStackViewHeight,
+              let keyboardHStackViewHeightConstraint else { return }
+
+        let enlargedHeight = max(0, view.bounds.height - requestedKeyboardViewHeight)
+        let keyAreaHeight = requestedKeyboardHStackViewHeight + enlargedHeight
+        guard keyboardHStackViewHeightConstraint.constant != keyAreaHeight else { return }
+        keyboardHStackViewHeightConstraint.constant = keyAreaHeight
     }
 
     var usesInterfaceOrientationForKeyboardHeight: Bool {
