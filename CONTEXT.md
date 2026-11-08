@@ -22,15 +22,15 @@ _Avoid_: 세로 띠, 세로 열, 사이드 바
 
 **접은 상태**:
 iPhone Duo를 접어 바깥 화면을 쓰는 상태.
-_Avoid_: 닫힌 상태, Closed
+_Avoid_: 닫힌 상태
 
 **반쯤 펼친 상태**:
 iPhone Duo를 완전히 펴지 않고 각도를 둔 채 안쪽 화면을 쓰는 상태.
-_Avoid_: 부분 열림, 반 접힘, Partially Open
+_Avoid_: 부분 열림, 반 접힘
 
 **완전히 펼친 상태**:
 iPhone Duo를 평평하게 펴서 안쪽 화면을 쓰는 상태.
-_Avoid_: 열린 상태, 전체 열림, Open
+_Avoid_: 열린 상태, 전체 열림
 
 ## 자판 배치
 
