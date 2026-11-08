@@ -122,6 +122,29 @@ public enum KeyboardHeightPolicy {
         ) ?? true
     }
 
+    /// 시스템이 키보드를 요청한 높이보다 키웠을 때 키 영역에 줄 높이.
+    ///
+    /// iPhone Duo 안쪽 화면을 반쯤 펼친 세로에서 시스템은 키보드 높이 제약(우선순위 999)을 덮어써 키보드를 키운다.
+    /// 키 영역은 아래에 붙어 있어 그대로 두면 자동완성 바 위에 빈 띠가 남으므로 늘어난 만큼 키 영역에 더한다.
+    ///
+    /// 안쪽 화면(regular×regular)에서 높이가 안정됐을 때만 더한다. 올라오는 동안, 회전·접기 전환 중,
+    /// 높이를 다시 요청한 직후에는 시스템이 잠깐씩 다른 높이를 주므로 거기에 맞추면 키 행이 늘었다 줄어든다.
+    /// 다른 기기는 지금까지처럼 요청한 높이를 쓴다
+    static func keyAreaHeight(
+        requestedKeyAreaHeight: CGFloat,
+        requestedKeyboardHeight: CGFloat,
+        actualKeyboardHeight: CGFloat,
+        isHeightSettled: Bool,
+        horizontalSizeClass: UIUserInterfaceSizeClass,
+        verticalSizeClass: UIUserInterfaceSizeClass
+    ) -> CGFloat {
+        guard isHeightSettled,
+              horizontalSizeClass == .regular,
+              verticalSizeClass == .regular else { return requestedKeyAreaHeight }
+
+        return requestedKeyAreaHeight + max(0, actualKeyboardHeight - requestedKeyboardHeight)
+    }
+
     private static func traitUsesPortraitHeight(
         horizontalSizeClass: UIUserInterfaceSizeClass,
         verticalSizeClass: UIUserInterfaceSizeClass

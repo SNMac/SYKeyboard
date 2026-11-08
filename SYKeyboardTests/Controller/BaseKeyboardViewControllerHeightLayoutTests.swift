@@ -10,8 +10,8 @@ import UIKit
 
 @testable import SYKeyboardCore
 
-/// 키보드 높이 계산은 `KeyboardHeightPolicyTests`가 갖고, 여기서는 VC가 건 높이 제약으로
-/// 자동완성 바와 키 영역이 키보드 안에 어떻게 놓이는지만 본다
+/// 키보드 높이 계산과 시스템이 늘린 높이를 언제 키 영역에 더할지는 `KeyboardHeightPolicyTests`가 갖고,
+/// 여기서는 iPhone Duo 안쪽 화면(regular×regular)에서 VC가 그 규칙을 키보드 생명주기에 맞춰 적용하는지만 본다
 @MainActor
 @Suite("키보드 높이에 따른 자동완성 바·키 영역 배치")
 struct BaseKeyboardViewControllerHeightLayoutTests {
@@ -21,6 +21,9 @@ struct BaseKeyboardViewControllerHeightLayoutTests {
     /// window에 올리고 `viewWillAppear`로 높이 제약을 건 키보드 뷰
     private func makeAppearedKeyboardView() throws -> (KeyboardView, UIWindow, HeightTestViewController) {
         let controller = HeightTestViewController()
+        // iPhone Duo 안쪽 화면
+        controller.traitOverrides.horizontalSizeClass = .regular
+        controller.traitOverrides.verticalSizeClass = .regular
         let window = UIWindow(frame: UIScreen.main.bounds)
         window.addSubview(controller.view)
         // 확장에서는 시스템이 부르는 콜백이다. 높이 제약은 여기서 처음 걸린다
