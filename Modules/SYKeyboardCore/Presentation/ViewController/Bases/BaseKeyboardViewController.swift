@@ -162,6 +162,8 @@ open class BaseKeyboardViewController: UIInputViewController {
 
     /// 힌지가 마지막으로 알려 준 접힘 상태. 힌지가 없는 기기와 iOS 27.1 미만에서는 `.unknown`에 머문다
     private var foldState: KeyboardSplitLayoutPolicy.FoldState = .unknown
+    /// 마지막으로 적용한 분할 자판 여부. 펼치거나 접어 이 값이 바뀔 때만 애니메이션한다
+    private var appliedUsesSplitLayout = false
 
     /// 현재 반복 입력 동작 중인지 확인하는 플래그
     public var isRepeatingInput: Bool { textDeletionCoordinator.isRepeatingInput }
@@ -1482,7 +1484,11 @@ private extension BaseKeyboardViewController {
     }
 
     /// 접힘 상태·화면 방향·한 손 모드로 분할 자판 여부를 정해 적용한다
-    func updateSplitLayout() {
+    /// 분할 자판 여부를 정해 키보드 뷰에 적용한다.
+    ///
+    /// `animated`이면 iOS 기본 키보드처럼 반쪽이 미끄러지며 나뉘고 합쳐진다. 분할 여부가 그대로이면
+    /// (반쯤 펼친 세로에서 높이만 바뀌는 경우 등) 애니메이션 없이 바로 적용한다
+    func updateSplitLayout(animated: Bool = false) {
         let isLandscape = view.window?.windowScene?.effectiveGeometry.interfaceOrientation.isLandscape ?? false
         let isSplitConditionMet = KeyboardSplitLayoutPolicy.isSplitConditionMet(
             foldState: foldState,
@@ -1495,7 +1501,23 @@ private extension BaseKeyboardViewController {
             || keyboardSettingsManager.isOneHandedKeyboardEnabled,
             oneHandedMode: currentOneHandedMode
         )
-        keyboardView.updateSplitLayout(usesSplitLayout: usesSplitLayout, isSplitConditionMet: isSplitConditionMet)
+        let isSplitLayoutChanged = usesSplitLayout != appliedUsesSplitLayout
+        appliedUsesSplitLayout = usesSplitLayout
+
+        guard animated, isSplitLayoutChanged, view.window != nil else {
+            keyboardView.updateSplitLayout(usesSplitLayout: usesSplitLayout, isSplitConditionMet: isSplitConditionMet)
+            return
+        }
+        // 지금 배치에서 출발하도록 밀린 레이아웃을 먼저 끝낸다
+        view.layoutIfNeeded()
+        UIView.animate(
+            withDuration: KeyboardSplitLayoutPolicy.transitionDuration,
+            delay: 0,
+            options: [.curveEaseInOut, .beginFromCurrentState, .allowUserInteraction]
+        ) {
+            self.keyboardView.updateSplitLayout(usesSplitLayout: usesSplitLayout, isSplitConditionMet: isSplitConditionMet)
+            self.view.layoutIfNeeded()
+        }
     }
 
     /// 힌지 상태를 받는 interaction을 붙인다.
@@ -1515,7 +1537,7 @@ private extension BaseKeyboardViewController {
         guard newFoldState != foldState else { return }
         logger.debug("접힘 상태 변경: \(String(describing: newFoldState))")
         foldState = newFoldState
-        updateSplitLayout()
+        updateSplitLayout(animated: true)
     }
 
     func updateShowingKeyboard() {

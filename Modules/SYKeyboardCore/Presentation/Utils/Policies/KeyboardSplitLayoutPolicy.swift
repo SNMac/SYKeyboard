@@ -66,6 +66,10 @@ public enum KeyboardSplitLayoutPolicy {
     /// 반쪽 하나가 전체 폭에서 차지하는 비율. 텐키와 자동완성 바를 오른쪽 반쪽에 둘 때 쓴다
     static var halfWidthRatio: CGFloat { halfColumnCount / totalColumnCount }
 
+    /// 펼치거나 접어 분할 여부가 바뀔 때 반쪽이 벌어지고 모이는 시간(초).
+    /// iOS 기본 키보드는 녹화 기준 0.25초에서 0.35초 동안 반쪽이 미끄러지며 나뉘고 합쳐진다
+    static let transitionDuration: Double = 0.3
+
     /// 같은 폭의 열 `columnCount`개를 둘로 나눌 때 간격이 열 하나의 몇 배인지.
     ///
     /// 간격 폭을 표준 자판과 같게(전체 폭의 3/14) 맞춘다. 4열 격자는 12/11, 10열 숫자 행은 30/11이다.
