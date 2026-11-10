@@ -220,6 +220,7 @@ struct KeyboardHeightPolicyTests {
           arguments: [(321.0, 277.0), (284.0, 240.0), (250.0, 240.0)])
     func test키영역높이_안쪽화면_안정(actualKeyboardHeight: Double, expected: Double) {
         let keyAreaHeight = KeyboardHeightPolicy.keyAreaHeight(
+            currentKeyAreaHeight: 240,
             requestedKeyAreaHeight: 240,
             requestedKeyboardHeight: 284,
             actualKeyboardHeight: CGFloat(actualKeyboardHeight),
@@ -231,12 +232,29 @@ struct KeyboardHeightPolicyTests {
         #expect(keyAreaHeight == CGFloat(expected))
     }
 
-    // 올라오는 동안 등 높이가 안정되지 않음 / 일반 iPhone 세로 / 바깥 화면 가로
-    @Test("높이가 안정되지 않았거나 안쪽 화면이 아니면 시스템이 키워도 요청한 키 영역 높이 그대로",
+    // 올라오는 동안(요청 높이 그대로) / 다 채운 뒤 내려가는 동안(늘어난 높이 그대로)
+    @Test("안쪽 화면에서 높이가 안정되지 않았으면 시스템이 높이를 바꿔도 지금 키 영역 높이 그대로",
+          arguments: [240.0, 277.0])
+    func test키영역높이_안쪽화면_안정전_유지(currentKeyAreaHeight: Double) {
+        let keyAreaHeight = KeyboardHeightPolicy.keyAreaHeight(
+            currentKeyAreaHeight: CGFloat(currentKeyAreaHeight),
+            requestedKeyAreaHeight: 240,
+            requestedKeyboardHeight: 284,
+            actualKeyboardHeight: 600,
+            isHeightSettled: false,
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .regular
+        )
+
+        #expect(keyAreaHeight == CGFloat(currentKeyAreaHeight))
+    }
+
+    // 일반 iPhone 세로·가로 / 바깥 화면. 안정 여부와 관계없다
+    @Test("안쪽 화면이 아니면 시스템이 키워도 요청한 키 영역 높이 그대로",
           arguments: [
-            (false, UIUserInterfaceSizeClass.regular, UIUserInterfaceSizeClass.regular),
-            (true, .compact, .regular),
-            (true, .regular, .compact)
+            (true, UIUserInterfaceSizeClass.compact, UIUserInterfaceSizeClass.regular),
+            (true, .regular, .compact),
+            (false, .compact, .regular)
           ])
     func test키영역높이_요청그대로(
         isHeightSettled: Bool,
@@ -244,6 +262,7 @@ struct KeyboardHeightPolicyTests {
         verticalSizeClass: UIUserInterfaceSizeClass
     ) {
         let keyAreaHeight = KeyboardHeightPolicy.keyAreaHeight(
+            currentKeyAreaHeight: 277,
             requestedKeyAreaHeight: 240,
             requestedKeyboardHeight: 284,
             actualKeyboardHeight: 600,

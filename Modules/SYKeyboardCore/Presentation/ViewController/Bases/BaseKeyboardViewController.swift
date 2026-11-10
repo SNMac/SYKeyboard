@@ -1128,6 +1128,7 @@ private extension BaseKeyboardViewController {
               let keyboardHStackViewHeightConstraint else { return }
 
         let keyAreaHeight = KeyboardHeightPolicy.keyAreaHeight(
+            currentKeyAreaHeight: keyboardHStackViewHeightConstraint.constant,
             requestedKeyAreaHeight: requestedKeyboardHStackViewHeight,
             requestedKeyboardHeight: requestedKeyboardViewHeight,
             actualKeyboardHeight: view.bounds.height,
