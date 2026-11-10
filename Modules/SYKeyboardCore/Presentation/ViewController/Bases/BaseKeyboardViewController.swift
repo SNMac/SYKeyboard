@@ -413,6 +413,9 @@ open class BaseKeyboardViewController: UIInputViewController {
         coordinator.animate { [weak self] _ in
             self?.setKeyboardHeight()
             self?.updateSplitLayout()
+            // 바뀐 분할 배치를 회전과 함께 적용한다. 레이아웃을 미루면 회전이 끝난 뒤에야
+            // 분할이 풀리거나 생겨 한 번 더 튄다(설정 앱 미리보기에서 확인)
+            self?.view.layoutIfNeeded()
         } completion: { [weak self] _ in
             // 회전이 끝난 뒤의 화면 방향으로 한 번 더 맞춘다
             self?.updateSplitLayout()
