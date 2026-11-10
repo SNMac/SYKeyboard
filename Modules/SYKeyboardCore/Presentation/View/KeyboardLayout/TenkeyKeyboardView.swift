@@ -36,6 +36,14 @@ final class TenkeyKeyboardView: UIView, TenkeyKeyboardLayoutProvider {
         [ ["0"] ]
     ]
     
+    /// 평소 패드가 자판 폭을 다 채우게 하는 제약
+    private lazy var fullWidthLeadingConstraint = layoutVStackView.leadingAnchor.constraint(equalTo: self.leadingAnchor)
+    /// 분할 자판에서 패드를 오른쪽 반쪽 폭으로 줄이는 제약. 오른쪽 끝은 평소와 같이 붙어 있다
+    private lazy var rightHalfWidthConstraint = layoutVStackView.widthAnchor.constraint(
+        equalTo: self.widthAnchor,
+        multiplier: KeyboardSplitLayoutPolicy.halfWidthRatio
+    )
+
     // MARK: - UI Components
     
     /// 키보드 레이아웃 수직 스택
@@ -124,9 +132,27 @@ private extension TenkeyKeyboardView {
         layoutVStackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             layoutVStackView.topAnchor.constraint(equalTo: self.topAnchor),
-            layoutVStackView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+            fullWidthLeadingConstraint,
             layoutVStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
             layoutVStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
+    }
+}
+
+// MARK: - Split Layout
+
+extension TenkeyKeyboardView {
+    /// 분할 자판 여부를 적용합니다.
+    ///
+    /// iOS 기본 숫자 패드처럼 나누지 않고 패드 하나를 오른쪽 반쪽 폭으로 줄여 옮긴다
+    func updateSplitLayout(_ usesSplitLayout: Bool) {
+        if usesSplitLayout {
+            fullWidthLeadingConstraint.isActive = false
+            rightHalfWidthConstraint.isActive = true
+        } else {
+            rightHalfWidthConstraint.isActive = false
+            fullWidthLeadingConstraint.isActive = true
+        }
+        setNeedsLayout()
     }
 }

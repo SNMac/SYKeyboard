@@ -14,11 +14,16 @@ public enum KeyboardPresentationStatePolicy {
     /// 최소 폭 제약은 required로 유지해야 `UIStackView`의 내부 제약에 밀려 무시되지 않는다.
     /// 다만 회전 도중처럼 가용 폭이 설정 폭보다 좁아지면 required 제약이 충돌하므로,
     /// 상수를 가용 폭까지 낮춰 충돌 없이 "가능하면 설정 폭 이상"을 만족시킨다.
+    ///
+    /// 분할 조건(iPhone Duo를 반쯤 펼친 가로)에서는 키보드 가운데로 접히는 선이 지나가므로
+    /// 한쪽 가장자리에서 접히는 선까지(가용 폭의 절반)를 넘지 않는다
     static func oneHandedKeyboardMinimumWidth(
         configuredWidth: CGFloat,
-        availableWidth: CGFloat
+        availableWidth: CGFloat,
+        isSplitConditionMet: Bool
     ) -> CGFloat {
-        return min(configuredWidth, max(0, availableWidth))
+        let maximumWidth = isSplitConditionMet ? availableWidth / 2 : availableWidth
+        return min(configuredWidth, max(0, maximumWidth))
     }
 
     static func isReturnButtonEnabled(

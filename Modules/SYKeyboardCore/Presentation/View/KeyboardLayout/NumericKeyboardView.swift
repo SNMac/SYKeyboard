@@ -142,6 +142,12 @@ extension NumericKeyboardView {
         columnWidthLayoutController.update(multiplier: multiplier)
         setNeedsLayout()
     }
+
+    /// 분할 자판 여부를 적용합니다. 2열과 3열 사이를 비운다
+    public func updateSplitLayout(_ usesSplitLayout: Bool) {
+        columnWidthLayoutController.updateSplitLayout(usesSplitLayout)
+        setNeedsLayout()
+    }
 }
 
 // MARK: - UI Methods
@@ -231,6 +237,7 @@ private extension NumericKeyboardView {
             referenceView: self,
             multiplier: UserDefaultsManager.shared.letterColumnWidthMultiplier
         )
+        columnWidthLayoutController.installSplitGaps()
 
         keyboardSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false
         oneHandedModeSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false

@@ -147,6 +147,23 @@ open class BaseKeyboardViewController: UIInputViewController {
     private var keyboardViewHeightConstraint: NSLayoutConstraint?
     /// `keyboardHStackView` 높이 제약 조건
     private var keyboardHStackViewHeightConstraint: NSLayoutConstraint?
+    /// `setKeyboardHeight()`가 정한 키 영역 높이. 시스템이 키보드를 키우면 여기에 늘어난 만큼을 더한다
+    private var requestedKeyboardHStackViewHeight: CGFloat?
+    /// 키보드가 다 올라왔는지(`viewDidAppear` ~ `viewWillDisappear`)
+    private var isKeyboardAppeared = false
+    /// 회전·바깥 화면 ↔ 안쪽 화면 전환 중인지
+    private var isKeyboardTransitioning = false
+    /// 키보드 높이를 다시 요청하고 시스템이 아직 반영하지 않았는지. 다음 런루프에서 풀린다
+    private var isAwaitingSystemKeyboardHeight = false
+    /// 키보드 높이가 안정됐는지. 이때만 시스템이 늘린 높이를 키 영역에 더한다(`KeyboardHeightPolicy.keyAreaHeight`)
+    private var isKeyboardHeightSettled: Bool {
+        isKeyboardAppeared && !isKeyboardTransitioning && !isAwaitingSystemKeyboardHeight
+    }
+
+    /// 힌지가 마지막으로 알려 준 접힘 상태. 힌지가 없는 기기와 iOS 27.1 미만에서는 `.unknown`에 머문다
+    private var foldState: KeyboardSplitLayoutPolicy.FoldState = .unknown
+    /// 마지막으로 적용한 분할 자판 여부. 펼치거나 접어 이 값이 바뀔 때만 애니메이션한다
+    private var appliedUsesSplitLayout = false
 
     /// 현재 반복 입력 동작 중인지 확인하는 플래그
     public var isRepeatingInput: Bool { textDeletionCoordinator.isRepeatingInput }
@@ -319,6 +336,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         if BaseKeyboardViewController.isPreview { updateReturnButtonType() }
 
         if keyboardSettingsManager.isOneHandedKeyboardEnabled { updateOneHandModekeyboard() }
+        installHingeInteraction()
 
         // 사용자 설정을 SuggestionController에 전달 — 엔진 생성은 첫 표시 이후로 지연
         suggestionController.isTextReplacementEnabled = keyboardSettingsManager.isTextReplacementEnabled
@@ -351,6 +369,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         super.viewWillAppear(animated)
         logger.debug("viewWillAppear")
         if !BaseKeyboardViewController.isPreview { setKeyboardHeight() }
+        updateSplitLayout()
         clipboardHistoryCoordinator.synchronizeIfNeeded()
         // 시뮬레이터(iOS 18.6)에서는 키보드가 나타날 때마다 새 VC라 엔진 캐시도 새로 읽지만, 같은 VC가 다시 나타나는 경우에 대비한다
         suggestionController.invalidateLearnedWordsCache()
@@ -374,13 +393,35 @@ open class BaseKeyboardViewController: UIInputViewController {
         super.viewDidAppear(animated)
         KeyboardDiagnostics.log("keyboard appeared")
         updateEdgeTouchSystemGesturePolicy()
+        // `viewWillAppear`에서는 window가 아직 없어 화면 방향을 모를 수 있다
+        updateSplitLayout()
+        isKeyboardAppeared = true
+        updateKeyAreaHeightForSystemKeyboardHeight()
         startDeferredSuggestionPreparationIfNeeded()
+    }
+
+    open override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        // iPhone Duo 안쪽 화면을 세로로 둔 채 접힘 상태만 바꾸면 전환 콜백 없이 높이만 바뀐다
+        updateKeyAreaHeightForSystemKeyboardHeight()
     }
 
     open override func viewWillTransition(to size: CGSize, with coordinator: any UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         logger.debug("viewWillTransition")
-        coordinator.animate { [weak self] _ in self?.setKeyboardHeight() }
+        isKeyboardTransitioning = true
+        coordinator.animate { [weak self] _ in
+            self?.setKeyboardHeight()
+            self?.updateSplitLayout()
+            // 바뀐 분할 배치를 회전과 함께 적용한다. 레이아웃을 미루면 회전이 끝난 뒤에야
+            // 분할이 풀리거나 생겨 한 번 더 튄다(설정 앱 미리보기에서 확인)
+            self?.view.layoutIfNeeded()
+        } completion: { [weak self] _ in
+            // 회전이 끝난 뒤의 화면 방향으로 한 번 더 맞춘다
+            self?.updateSplitLayout()
+            self?.isKeyboardTransitioning = false
+            self?.updateKeyAreaHeightForSystemKeyboardHeight()
+        }
     }
 
     open override func viewSafeAreaInsetsDidChange() {
@@ -467,6 +508,7 @@ open class BaseKeyboardViewController: UIInputViewController {
 
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        isKeyboardAppeared = false
         KeyboardDiagnostics.log("keyboard will disappear")
         textDeletionCoordinator.stopRepeatInputTracking()
         clipboardHistoryCoordinator.closePanelIfNeeded()
@@ -1051,6 +1093,7 @@ private extension BaseKeyboardViewController {
             numberRowHeight: numberRowHeight
         )
 
+        let previousKeyboardViewHeight = keyboardViewHeightConstraint?.constant
         if let keyboardViewHeightConstraint {
             keyboardViewHeightConstraint.constant = height.keyboardViewHeight
         } else {
@@ -1060,6 +1103,7 @@ private extension BaseKeyboardViewController {
             keyboardViewHeightConstraint = heightConstraint
         }
 
+        requestedKeyboardHStackViewHeight = height.keyboardHStackViewHeight
         if let keyboardHStackViewHeightConstraint {
             keyboardHStackViewHeightConstraint.constant = height.keyboardHStackViewHeight
         } else {
@@ -1067,6 +1111,38 @@ private extension BaseKeyboardViewController {
             heightConstraint.isActive = true
             keyboardHStackViewHeightConstraint = heightConstraint
         }
+
+        // 자동완성 바 표시가 바뀌는 등 다 올라온 뒤에 높이를 다시 요청하면, 시스템이 반영하기 전까지는
+        // 키보드가 옛 높이 그대로다. 그 차이를 늘어난 높이로 보지 않도록 다음 런루프까지 기다린다
+        if isKeyboardAppeared, !isKeyboardTransitioning,
+           let previousKeyboardViewHeight, previousKeyboardViewHeight != height.keyboardViewHeight {
+            isAwaitingSystemKeyboardHeight = true
+            DispatchQueue.main.async { [weak self] in
+                self?.isAwaitingSystemKeyboardHeight = false
+                self?.updateKeyAreaHeightForSystemKeyboardHeight()
+            }
+        }
+    }
+
+    /// 시스템이 키보드를 요청한 높이보다 키웠으면 늘어난 만큼 키 영역을 키운다.
+    /// 언제 얼마나 더할지는 `KeyboardHeightPolicy.keyAreaHeight`가 정한다
+    func updateKeyAreaHeightForSystemKeyboardHeight() {
+        guard !BaseKeyboardViewController.isPreview,
+              let requestedKeyboardViewHeight = keyboardViewHeightConstraint?.constant,
+              let requestedKeyboardHStackViewHeight,
+              let keyboardHStackViewHeightConstraint else { return }
+
+        let keyAreaHeight = KeyboardHeightPolicy.keyAreaHeight(
+            currentKeyAreaHeight: keyboardHStackViewHeightConstraint.constant,
+            requestedKeyAreaHeight: requestedKeyboardHStackViewHeight,
+            requestedKeyboardHeight: requestedKeyboardViewHeight,
+            actualKeyboardHeight: view.bounds.height,
+            isHeightSettled: isKeyboardHeightSettled,
+            horizontalSizeClass: traitCollection.horizontalSizeClass,
+            verticalSizeClass: traitCollection.verticalSizeClass
+        )
+        guard keyboardHStackViewHeightConstraint.constant != keyAreaHeight else { return }
+        keyboardHStackViewHeightConstraint.constant = keyAreaHeight
     }
 
     var usesInterfaceOrientationForKeyboardHeight: Bool {
@@ -1406,6 +1482,67 @@ private extension BaseKeyboardViewController {
 
     func updateOneHandModekeyboard() {
         keyboardView.updateOneHandedMode(currentOneHandedMode)
+        // 한 손 모드를 켜거나 끄면 분할 여부도 바뀐다
+        updateSplitLayout()
+    }
+
+    /// 접힘 상태·화면 방향·한 손 모드로 분할 자판 여부를 정해 적용한다
+    /// 분할 자판 여부를 정해 키보드 뷰에 적용한다.
+    ///
+    /// `animated`이면 iOS 기본 키보드처럼 반쪽이 미끄러지며 나뉘고 합쳐진다. 분할 여부가 그대로이면
+    /// (반쯤 펼친 세로에서 높이만 바뀌는 경우 등) 애니메이션 없이 바로 적용한다
+    func updateSplitLayout(animated: Bool = false) {
+        let isLandscape = view.window?.windowScene?.effectiveGeometry.interfaceOrientation.isLandscape ?? false
+        let isSplitConditionMet = KeyboardSplitLayoutPolicy.isSplitConditionMet(
+            foldState: foldState,
+            isLandscape: isLandscape
+        )
+        let usesSplitLayout = KeyboardSplitLayoutPolicy.usesSplitLayout(
+            isSplitConditionMet: isSplitConditionMet,
+            // 미리보기는 한 손 키보드 설정과 관계없이 미리보기 모드를 그대로 보여 준다
+            isOneHandedKeyboardEnabled: BaseKeyboardViewController.isPreview
+            || keyboardSettingsManager.isOneHandedKeyboardEnabled,
+            oneHandedMode: currentOneHandedMode
+        )
+        let isSplitLayoutChanged = usesSplitLayout != appliedUsesSplitLayout
+        appliedUsesSplitLayout = usesSplitLayout
+
+        guard animated, isSplitLayoutChanged, view.window != nil else {
+            keyboardView.updateSplitLayout(usesSplitLayout: usesSplitLayout, isSplitConditionMet: isSplitConditionMet)
+            return
+        }
+        // 지금 배치에서 출발하도록 밀린 레이아웃을 먼저 끝낸다
+        view.layoutIfNeeded()
+        UIView.animate(
+            withDuration: KeyboardSplitLayoutPolicy.transitionDuration,
+            delay: 0,
+            usingSpringWithDamping: KeyboardSplitLayoutPolicy.transitionSpringDamping,
+            initialSpringVelocity: 0,
+            options: [.beginFromCurrentState, .allowUserInteraction]
+        ) {
+            self.keyboardView.updateSplitLayout(usesSplitLayout: usesSplitLayout, isSplitConditionMet: isSplitConditionMet)
+            self.view.layoutIfNeeded()
+        }
+    }
+
+    /// 힌지 상태를 받는 interaction을 붙인다.
+    ///
+    /// iOS 27.1 iPhone Duo 시뮬레이터에서는 키보드 확장에 힌지 업데이트가 오지 않고(설정 앱 미리보기에는 온다),
+    /// 실기기에서는 확인하지 못했다. 업데이트가 오지 않으면 `.unknown`에 머물러 분할하지 않는다
+    func installHingeInteraction() {
+        guard #available(iOS 27.1, *) else { return }
+        let interaction = UIHingeInteraction { [weak self] _, update in
+            self?.foldStateDidChange(KeyboardSplitLayoutPolicy.FoldState(hingeStatus: update.hinge?.status))
+        }
+        view.addInteraction(interaction)
+    }
+
+    func foldStateDidChange(_ newFoldState: KeyboardSplitLayoutPolicy.FoldState) {
+        // 펼치는 동안 같은 상태가 여러 번 연달아 온다
+        guard newFoldState != foldState else { return }
+        logger.debug("접힘 상태 변경: \(String(describing: newFoldState))")
+        foldState = newFoldState
+        updateSplitLayout(animated: true)
     }
 
     func updateShowingKeyboard() {
@@ -1948,3 +2085,18 @@ extension BaseKeyboardViewController: TextDeletionHost {
 // MARK: - UndoRedoHost
 
 extension BaseKeyboardViewController: UndoRedoHost {}
+
+// MARK: - Fold State
+
+@available(iOS 27.1, *)
+private extension KeyboardSplitLayoutPolicy.FoldState {
+    init(hingeStatus: UIHinge.Status?) {
+        switch hingeStatus {
+        case .closed: self = .closed
+        case .partiallyOpen: self = .partiallyOpen
+        case .fullyOpen: self = .fullyOpen
+        case .unknown, .none: self = .unknown
+        @unknown default: self = .unknown
+        }
+    }
+}

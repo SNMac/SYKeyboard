@@ -19,11 +19,11 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     )
     
     public private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
-    public private(set) lazy var primaryButtonList: [PrimaryButton] = numberRowPrimaryKeyButtonList + firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + [spaceButton, atButton, periodButton, slashButton, dotComButton]
+    public private(set) lazy var primaryButtonList: [PrimaryButton] = numberRowPrimaryKeyButtonList + firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + [thirdRowSplitDuplicateButton] + [spaceButton, atButton, periodButton, slashButton, dotComButton, leftSpaceButton]
     public private(set) lazy var secondaryButtonList: [SecondaryButton] = [shiftButton, deleteButton, switchButton, returnButton, nextKeyboardButton]
     + [languageSwitchButton].compactMap { $0 as SecondaryButton? }
-    public private(set) lazy var totalTextInterableButtonList: [TextInteractable] = numberRowPrimaryKeyButtonList + firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList
-    + [deleteButton, spaceButton, atButton, periodButton, slashButton, dotComButton, returnButton]
+    public private(set) lazy var totalTextInterableButtonList: [TextInteractable] = numberRowPrimaryKeyButtonList + firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + [thirdRowSplitDuplicateButton]
+    + [deleteButton, spaceButton, atButton, periodButton, slashButton, dotComButton, returnButton, leftSpaceButton]
     
     var currentSymbolKeyboardMode: SymbolKeyboardMode = .default {
         didSet(oldMode) {
@@ -46,6 +46,14 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     private var fourthRowModifierWidthConstraint: NSLayoutConstraint?
     /// 셋째 줄 키 너비 제약. 배열이 바뀌면 다시 만든다
     private var thirdRowWidthConstraints: [NSLayoutConstraint] = []
+    /// 스페이스 묶음 너비 제약(한영 전환 버튼이 없을 때만 있음). 분할 자판에서는 끈다
+    private var spaceButtonHStackWidthConstraint: NSLayoutConstraint?
+    /// 분할 자판 여부
+    private var usesSplitLayout = false
+    /// 분할 자판에서 넷째 줄 간격을 가운데에 고정하는 제약
+    private lazy var fourthRowSplitGapCenterConstraint = fourthRowSplitGap.centerXAnchor.constraint(
+        equalTo: fourthRowHStackView.centerXAnchor
+    )
 
     private let showsLanguageSwitchButton: Bool
     private let showsNumberRowSetting: Bool
@@ -92,6 +100,14 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
         return keyboardRowHStackView
     }()
     
+    /// 분할 자판에서 각 줄 가운데를 비우는 간격. 평소에는 숨긴다
+    private let firstRowSplitGap = KeyboardSplitViews.makeHiddenSpacer()
+    private let secondRowSplitGap = KeyboardSplitViews.makeHiddenSpacer()
+    private let thirdRowSplitGap = KeyboardSplitViews.makeHiddenSpacer()
+    private let fourthRowSplitGap = KeyboardSplitViews.makeHiddenSpacer()
+    /// 스페이스가 없는 입력 모드(URL)의 분할 자판에서 왼쪽 반쪽 넷째 줄을 채우는 빈칸
+    private let leftSpaceFillerSpacer = KeyboardSplitViews.makeHiddenSpacer()
+
     /// 키보드 숫자 행
     private lazy var numberRow = KeyboardNumberRow(isEnabled: showsNumberRowSetting)
     /// 숫자 행 `PrimaryKeyButton` 배열. 숫자 행이 꺼져 있으면 비어 있다
@@ -108,6 +124,21 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     private(set) lazy var thirdRowPrimaryKeyButtonList = SymbolKeyboardMode.keyList(usesNumberRow: showsNumberRowSetting)[0][2].map {
         PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: $0, secondary: nil))
     }
+    /// 셋째 줄 경계 키('?')의 위치. 분할 자판에서 양쪽 반쪽에 하나씩 보인다
+    private var thirdRowSplitIndex: Int { thirdRowPrimaryKeyButtonList.count / 2 }
+    /// 분할 자판 오른쪽 반쪽 셋째 줄 맨 앞의 경계 키. 평소에는 숨긴다
+    private(set) lazy var thirdRowSplitDuplicateButton: PrimaryKeyButton = {
+        let button = PrimaryKeyButton(
+            keyboard: .symbol,
+            button: .keyButton(
+                primary: SymbolKeyboardMode.keyList(usesNumberRow: showsNumberRowSetting)[0][2][thirdRowSplitIndex],
+                secondary: nil
+            )
+        )
+        button.isHidden = true
+
+        return button
+    }()
     
     public private(set) var shiftButton = ShiftButton(keyboard: .symbol)
     public private(set) var deleteButton = DeleteButton(keyboard: .symbol)
@@ -118,6 +149,13 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     }()
     
     public private(set) var spaceButton = SpaceButton(keyboard: .symbol)
+    /// 분할 자판 왼쪽 반쪽의 스페이스. 평소와 스페이스가 없는 입력 모드에서는 숨긴다
+    private(set) var leftSpaceButton: SpaceButton = {
+        let button = SpaceButton(keyboard: .symbol)
+        button.isHidden = true
+
+        return button
+    }()
     public private(set) var atButton = PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: ["@"], secondary: nil))
     public private(set) var periodButton = PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: ["."], secondary: nil))
     public private(set) var slashButton = PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: ["/"], secondary: nil))
@@ -187,13 +225,24 @@ private extension SymbolKeyboardView {
          fourthRowHStackView].forEach { layoutVStackView.addArrangedSubview($0) }
         
         firstRowPrimaryKeyButtonList.forEach { firstRowHStackView.addArrangedSubview($0) }
+        firstRowHStackView.insertArrangedSubview(firstRowSplitGap, at: firstRowPrimaryKeyButtonList.count / 2)
         
         secondRowPrimaryKeyButtonList.forEach { secondRowHStackView.addArrangedSubview($0) }
+        secondRowHStackView.insertArrangedSubview(secondRowSplitGap, at: secondRowPrimaryKeyButtonList.count / 2)
         
         [shiftButton, thirdRowInsideHStackView, deleteButton].forEach { thirdRowHStackView.addArrangedSubview($0) }
         thirdRowPrimaryKeyButtonList.forEach { thirdRowInsideHStackView.addArrangedSubview($0) }
+        // 경계 키 뒤에 간격과 오른쪽 반쪽용 경계 키를 둔다
+        [thirdRowSplitGap, thirdRowSplitDuplicateButton].enumerated().forEach { offset, view in
+            thirdRowInsideHStackView.insertArrangedSubview(view, at: thirdRowSplitIndex + 1 + offset)
+        }
         
-        [fourthRowLeftSecondaryButtonHStackView, spaceButtonHStackView, returnButton].forEach { fourthRowHStackView.addArrangedSubview($0) }
+        [fourthRowLeftSecondaryButtonHStackView,
+         leftSpaceButton,
+         leftSpaceFillerSpacer,
+         fourthRowSplitGap,
+         spaceButtonHStackView,
+         returnButton].forEach { fourthRowHStackView.addArrangedSubview($0) }
         let modifierButtons: [SecondaryButton] = [switchButton]
         + [languageSwitchButton].compactMap { $0 }
         + [nextKeyboardButton]
@@ -209,6 +258,25 @@ private extension SymbolKeyboardView {
             layoutVStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
         numberRow.install(in: self, above: layoutVStackView)
+        numberRow.installSplitGap(gapToKeyRatio: KeyboardSplitLayoutPolicy.edgeAlignedRowGapColumnCount)
+
+        // 한 열의 폭은 첫 줄 키 폭이다. 평소에는 행 폭의 1/10, 분할 자판에서는 1/14가 된다
+        guard let columnReferenceView = firstRowPrimaryKeyButtonList.first else {
+            fatalError("firstRowPrimaryKeyButtonList가 비어있습니다.")
+        }
+
+        // 첫째·둘째 줄은 간격이 들어갈 수 있도록 `.fill`로 두고 키끼리 등폭으로 맞춘다.
+        // 간격이 숨겨진 평소에는 `.fillEqually`와 같은 해가 나온다
+        for (row, buttons, gap) in [(firstRowHStackView, firstRowPrimaryKeyButtonList, firstRowSplitGap),
+                                    (secondRowHStackView, secondRowPrimaryKeyButtonList, secondRowSplitGap)] {
+            row.distribution = .fill
+            for button in buttons where button !== columnReferenceView {
+                button.widthAnchor.constraint(equalTo: columnReferenceView.widthAnchor).isActive = true
+            }
+            KeyboardSplitViews.activateHideableWidth(of: gap, equalTo: columnReferenceView, multiplier: KeyboardSplitLayoutPolicy.edgeAlignedRowGapColumnCount)
+        }
+        KeyboardSplitViews.activateHideableWidth(of: thirdRowSplitGap, equalTo: columnReferenceView, multiplier: KeyboardSplitLayoutPolicy.gapColumnCount)
+        KeyboardSplitViews.activateHideableWidth(of: fourthRowSplitGap, equalTo: columnReferenceView, multiplier: KeyboardSplitLayoutPolicy.gapColumnCount)
 
         updateThirdRowWidthConstraints()
         
@@ -242,16 +310,22 @@ private extension SymbolKeyboardView {
             globeWidth.priority = .init(999)
             globeWidth.isActive = true
             updateFourthRowModifierWidthConstraint(needsInputModeSwitchKey: true)
-        } else if let superview = fourthRowLeftSecondaryButtonHStackView.superview {
-            fourthRowLeftSecondaryButtonHStackView.widthAnchor.constraint(equalTo: superview.widthAnchor,
-                                                                          multiplier: 0.25).isActive = true
+        } else {
+            // 행 폭의 1/4(2.5열). 분할 자판에서도 같은 폭을 쓰도록 열 폭 기준으로 건다
+            fourthRowLeftSecondaryButtonHStackView.widthAnchor.constraint(
+                equalTo: columnReferenceView.widthAnchor,
+                multiplier: 0.25 * CGFloat(firstRowPrimaryKeyButtonList.count)
+            ).isActive = true
         }
         
         spaceButtonHStackView.translatesAutoresizingMaskIntoConstraints = false
         if languageSwitchButton == nil,
            let superview = spaceButtonHStackView.superview {
-            spaceButtonHStackView.widthAnchor.constraint(equalTo: superview.widthAnchor,
-                                                        multiplier: 0.5).isActive = true
+            // 분할 자판에서는 왼쪽 스페이스와 나눠 가져야 하므로 `updateSplitLayout(_:)`이 끈다
+            let widthConstraint = spaceButtonHStackView.widthAnchor.constraint(equalTo: superview.widthAnchor,
+                                                                               multiplier: 0.5)
+            widthConstraint.isActive = true
+            spaceButtonHStackWidthConstraint = widthConstraint
         }
         
         atButton.translatesAutoresizingMaskIntoConstraints = false
@@ -287,12 +361,11 @@ private extension SymbolKeyboardView {
         }
         
         returnButton.translatesAutoresizingMaskIntoConstraints = false
-        if let superview = returnButton.superview {
-            returnButton.widthAnchor.constraint(
-                equalTo: superview.widthAnchor,
-                multiplier: KeyboardLayoutFigure.returnButtonWidthMultiplier
-            ).isActive = true
-        }
+        // 행 폭의 1/4(2.5열). 분할 자판에서도 같은 폭을 쓰도록 열 폭 기준으로 건다
+        returnButton.widthAnchor.constraint(
+            equalTo: columnReferenceView.widthAnchor,
+            multiplier: KeyboardLayoutFigure.returnButtonWidthMultiplier * CGFloat(firstRowPrimaryKeyButtonList.count)
+        ).isActive = true
         
         keyboardSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -322,6 +395,16 @@ private extension SymbolKeyboardView {
             oneHandedModeSelectOverlayView.widthAnchor.constraint(equalToConstant: KeyboardLayoutFigure.oneHandedModeSelectOverlayWidth),
             oneHandedModeSelectOverlayView.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.selectOverlayHeight)
         ])
+    }
+
+    /// 분할 자판 넷째 줄 왼쪽 반쪽을 채운다. 입력 모드가 바뀔 때마다 `updateKeyButtonList()`에서 다시 맞춘다
+    func updateSplitLeftSpaceVisibility() {
+        KeyboardSplitViews.updateLeftHalfSpace(
+            leftSpaceButton: leftSpaceButton,
+            filler: leftSpaceFillerSpacer,
+            usesSplitLayout: usesSplitLayout,
+            isSpaceHidden: spaceButton.isHidden
+        )
     }
 
     /// `switchButton`과 한영 전환 버튼의 합이 리턴 버튼 너비와 같아지는 `switchButton` 계수
@@ -379,6 +462,13 @@ private extension SymbolKeyboardView {
                 button.update(buttonType: TextInteractableType.keyButton(primary: primaryKeyList, secondary: nil))
             }
         }
+        // 경계 키 복제본은 원래 키와 같은 글자를 쓴다
+        let duplicateKeyList = SymbolKeyboardMode.keyList(usesNumberRow: showsNumberRowSetting)[symbolKeyListIndex][2][thirdRowSplitIndex]
+        thirdRowSplitDuplicateButton.update(buttonType: TextInteractableType.keyButton(primary: duplicateKeyList, secondary: nil))
+        // `update`가 글자가 있으면 버튼을 보이게 하므로 분할 자판이 아닐 때는 다시 숨긴다
+        thirdRowSplitDuplicateButton.isHidden = !usesSplitLayout
+        // 입력 모드가 바뀌면 shift가 풀리며 여기로 오므로 스페이스 표시도 함께 맞춘다
+        updateSplitLeftSpaceVisibility()
         updateThirdRowWidthConstraints()
     }
 
@@ -388,12 +478,16 @@ private extension SymbolKeyboardView {
         NSLayoutConstraint.deactivate(thirdRowWidthConstraints)
         thirdRowWidthConstraints.removeAll()
 
-        let visibleButtons = thirdRowPrimaryKeyButtonList.filter { !$0.isHidden }
+        // 분할 자판의 경계 키 복제본까지 화면 순서대로 본다
+        let visibleButtons = thirdRowInsideHStackView.arrangedSubviews
+            .compactMap { $0 as? PrimaryKeyButton }
+            .filter { !$0.isHidden }
         guard let firstButton = visibleButtons.first,
-              let lastButton = visibleButtons.last else { return }
+              let lastButton = visibleButtons.last,
+              let columnReferenceView = firstRowPrimaryKeyButtonList.first else { return }
 
-        let multiplier = 1.0 / CGFloat(firstRowPrimaryKeyButtonList.count)
-        * KeyboardLayoutFigure.symbolThirdRowButtonWidthMultiplier
+        // 열 폭(첫 줄 키 폭) 기준이라 분할 자판에서도 같은 식을 쓴다
+        let multiplier = KeyboardSplitLayoutPolicy.symbolThirdRowButtonWidthMultiplier(usesSplitLayout: usesSplitLayout)
 
         // 양 끝 버튼이 남는 폭을 똑같이 나눠 갖고, 시각 요소는 안쪽으로 붙인다
         if firstButton !== lastButton {
@@ -401,7 +495,7 @@ private extension SymbolKeyboardView {
         }
         for button in visibleButtons where button !== firstButton && button !== lastButton {
             thirdRowWidthConstraints.append(
-                button.widthAnchor.constraint(equalTo: thirdRowHStackView.widthAnchor, multiplier: multiplier)
+                button.widthAnchor.constraint(equalTo: columnReferenceView.widthAnchor, multiplier: multiplier)
             )
         }
         NSLayoutConstraint.activate(thirdRowWidthConstraints)
@@ -409,9 +503,9 @@ private extension SymbolKeyboardView {
         for button in visibleButtons {
             button.translatesAutoresizingMaskIntoConstraints = false
             if button === firstButton {
-                button.updateKeyAlignment(.right, referenceView: thirdRowHStackView, multiplier: multiplier)
+                button.updateKeyAlignment(.right, referenceView: columnReferenceView, multiplier: multiplier)
             } else if button === lastButton {
-                button.updateKeyAlignment(.left, referenceView: thirdRowHStackView, multiplier: multiplier)
+                button.updateKeyAlignment(.left, referenceView: columnReferenceView, multiplier: multiplier)
             } else {
                 button.updateKeyAlignment(.center, referenceView: nil, multiplier: multiplier)
             }
@@ -430,6 +524,32 @@ extension SymbolKeyboardView {
 
     func updateNumberRowHeight(_ height: CGFloat) {
         numberRow.updateHeight(height)
+    }
+
+    /// 분할 자판 여부를 적용합니다.
+    ///
+    /// 각 줄 가운데 간격과 경계 키 복제본, 왼쪽 반쪽 스페이스를 보이거나 숨긴다.
+    /// 열 폭은 첫 줄 키 폭을 기준으로 걸려 있어 간격이 보이면 저절로 1/14로 줄어든다
+    func updateSplitLayout(_ usesSplitLayout: Bool) {
+        guard usesSplitLayout != self.usesSplitLayout else { return }
+        self.usesSplitLayout = usesSplitLayout
+
+        [firstRowSplitGap, secondRowSplitGap, thirdRowSplitGap, fourthRowSplitGap].forEach {
+            $0.isHidden = !usesSplitLayout
+        }
+        thirdRowSplitDuplicateButton.isHidden = !usesSplitLayout
+        updateSplitLeftSpaceVisibility()
+        // 스페이스 묶음 고정 폭과 가운데 고정은 함께 쓸 수 없으므로 순서대로 바꾼다
+        if usesSplitLayout {
+            spaceButtonHStackWidthConstraint?.isActive = false
+            fourthRowSplitGapCenterConstraint.isActive = true
+        } else {
+            fourthRowSplitGapCenterConstraint.isActive = false
+            spaceButtonHStackWidthConstraint?.isActive = true
+        }
+        numberRow.updateSplitLayout(usesSplitLayout)
+        updateThirdRowWidthConstraints()
+        setNeedsLayout()
     }
 
     func updatePeriodButtonWidthConstraint(multiplier: CGFloat?) {

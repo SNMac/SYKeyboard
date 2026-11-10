@@ -21,6 +21,8 @@ final class KeyboardNumberRow {
     let buttonList: [PrimaryKeyButton]
     /// 숫자 행 높이 제약. 방향에 따라 `updateHeight(_:)`가 상수를 바꾼다
     private var heightConstraint: NSLayoutConstraint?
+    /// 분할 자판에서 5와 6 사이를 비우는 간격. 숫자 행이 꺼져 있거나 설치 전이면 `nil`이다
+    private var splitGap: KeyboardSpacer?
 
     // MARK: - UI Components
 
@@ -66,6 +68,33 @@ final class KeyboardNumberRow {
             contentView.topAnchor.constraint(equalTo: hStackView.bottomAnchor)
         ])
         self.heightConstraint = heightConstraint
+    }
+
+    /// 5와 6 사이에 분할 간격을 넣습니다. 간격은 분할 자판에서만 보입니다.
+    ///
+    /// 간격을 넣으려면 행을 `.fill`로 바꿔야 하므로 숫자 키끼리 등폭 제약을 건다.
+    /// 간격이 숨겨진 평소에는 `.fillEqually`와 같은 해가 나온다.
+    /// `install(in:above:)` 뒤에 한 번 호출해야 합니다
+    /// - Parameter gapToKeyRatio: 간격 폭이 숫자 키 하나의 몇 배인지. 표준 자판은 첫 줄과
+    ///   가장자리를 맞추려고 첫 줄과 같은 값을, 4열 격자 자판은 간격 폭을 맞춘 값을 준다
+    func installSplitGap(gapToKeyRatio: CGFloat) {
+        guard isEnabled, splitGap == nil,
+              let firstButton = buttonList.first else { return }
+
+        hStackView.distribution = .fill
+        buttonList.dropFirst().forEach {
+            $0.widthAnchor.constraint(equalTo: firstButton.widthAnchor).isActive = true
+        }
+
+        let gap = KeyboardSplitViews.makeHiddenSpacer()
+        hStackView.insertArrangedSubview(gap, at: buttonList.count / 2)
+        KeyboardSplitViews.activateHideableWidth(of: gap, equalTo: firstButton, multiplier: gapToKeyRatio)
+        splitGap = gap
+    }
+
+    /// 분할 자판 여부에 따라 간격을 보이거나 숨깁니다
+    func updateSplitLayout(_ usesSplitLayout: Bool) {
+        splitGap?.isHidden = !usesSplitLayout
     }
 
     func updateHeight(_ height: CGFloat) {

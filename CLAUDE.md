@@ -220,10 +220,11 @@ single-context(루트 `CONTEXT.md` + `docs/adr/`). See `docs/agents/domain.md`.
 
 ## 코드 스타일
 
-- Swift 5 프로젝트이며 Xcode 26 이상을 기준으로 한다. 현재 production 코드가
+- Swift 5 프로젝트이며 Xcode 27.1 이상을 기준으로 한다. 현재 production 코드가
+  iPhone Duo 힌지 API(`UIHingeInteraction`, `UIHinge.Status`) 등 iOS 27.1 SDK 심볼과
   `UIGlassEffect` 등 iOS 26 SDK 심볼을 직접 참조하므로, `#available`만으로
-  Xcode 16 SDK 컴파일 호환성이 생기지 않는다. `SYKeyboardAssets` 패키지는
-  `swift-tools-version: 6.0`을 사용한다.
+  그보다 낮은 Xcode SDK에서 컴파일되지 않는다. Xcode Cloud 워크플로도 27.1 이상을 쓴다.
+  `SYKeyboardAssets` 패키지는 `swift-tools-version: 6.0`을 사용한다.
 - deprecated API의 신규 사용은 지양하고, 현재 지원되는 권장 API를 우선한다. 기존 deprecated API를 수정할 때도 변경 범위와 호환성을 확인해 가능한 경우 권장 대체 API로 전환한다.
 - 기존 스타일처럼 `// MARK: -` 섹션, 명확한 접근 제어, 짧은 한국어 주석을 유지한다.
 - Swift, Foundation, UIKit, SwiftUI가 제공하는 표준 API를 우선 사용한다. 예를 들어 UIKit gesture의 위치/속도처럼 프레임워크가 직접 제공하는 값이 있으면 별도 프레임워크 import나 직접 계산보다 이를 먼저 검토한다.
