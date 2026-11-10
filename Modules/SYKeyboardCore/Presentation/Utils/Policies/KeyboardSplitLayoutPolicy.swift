@@ -67,8 +67,12 @@ public enum KeyboardSplitLayoutPolicy {
     static var halfWidthRatio: CGFloat { halfColumnCount / totalColumnCount }
 
     /// 펼치거나 접어 분할 여부가 바뀔 때 반쪽이 벌어지고 모이는 시간(초).
-    /// iOS 기본 키보드는 녹화 기준 0.25초에서 0.35초 동안 반쪽이 미끄러지며 나뉘고 합쳐진다
-    static let transitionDuration: Double = 0.3
+    ///
+    /// iOS 기본 키보드는 녹화 기준 약 0.35초 동안 반쪽이 미끄러지며 나뉘고 합쳐진다. 처음에 크게 움직이고
+    /// 뒤로 갈수록 길게 감속하는 모양이라, 튕기지 않는 스프링(`transitionSpringDamping`)으로 맞춘다
+    static let transitionDuration: Double = 0.35
+    /// 분할 전환 스프링의 감쇠비. 1이면 튕기지 않고 멈춘다
+    static let transitionSpringDamping: CGFloat = 1
 
     /// 같은 폭의 열 `columnCount`개를 둘로 나눌 때 간격이 열 하나의 몇 배인지.
     ///

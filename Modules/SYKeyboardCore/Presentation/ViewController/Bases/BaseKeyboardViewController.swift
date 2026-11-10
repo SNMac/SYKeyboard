@@ -1513,7 +1513,9 @@ private extension BaseKeyboardViewController {
         UIView.animate(
             withDuration: KeyboardSplitLayoutPolicy.transitionDuration,
             delay: 0,
-            options: [.curveEaseInOut, .beginFromCurrentState, .allowUserInteraction]
+            usingSpringWithDamping: KeyboardSplitLayoutPolicy.transitionSpringDamping,
+            initialSpringVelocity: 0,
+            options: [.beginFromCurrentState, .allowUserInteraction]
         ) {
             self.keyboardView.updateSplitLayout(usesSplitLayout: usesSplitLayout, isSplitConditionMet: isSplitConditionMet)
             self.view.layoutIfNeeded()
