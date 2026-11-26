@@ -103,6 +103,16 @@ final class SuggestionBarView: UIView {
             > suggestionScrollView.bounds.width + SuggestionBarView.scrollTolerance
     }
 
+    /// 평소 바가 키보드 폭을 다 채우게 하는 제약
+    private lazy var fullWidthLeadingConstraint = buttonContainerHStackView.leadingAnchor.constraint(
+        equalTo: self.leadingAnchor
+    )
+    /// 분할 자판에서 바를 오른쪽 반쪽 폭으로 줄이는 제약. 오른쪽 끝은 평소와 같이 붙어 있다
+    private lazy var rightHalfWidthConstraint = buttonContainerHStackView.widthAnchor.constraint(
+        equalTo: self.widthAnchor,
+        multiplier: KeyboardSplitLayoutPolicy.halfWidthRatio
+    )
+
     private var undoRedoViews: [UIView] {
         return [undoRedoLeadingDivider, undoButton, undoRedoMiddleDivider, redoButton]
     }
@@ -469,7 +479,7 @@ private extension SuggestionBarView {
         buttonContainerHStackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             buttonContainerHStackView.topAnchor.constraint(equalTo: self.topAnchor, constant: KeyboardLayoutFigure.keyboardFrameSpacing),
-            buttonContainerHStackView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 0),
+            fullWidthLeadingConstraint,
             buttonContainerHStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: 0),
             buttonContainerHStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: 0)
         ])
@@ -492,6 +502,26 @@ private extension SuggestionBarView {
         }
     }
 
+}
+
+// MARK: - Split Layout
+
+extension SuggestionBarView {
+    /// 분할 자판 여부를 적용합니다.
+    ///
+    /// 분할하면 클립보드·후보·undo/redo를 그대로 둔 채 바 전체를 오른쪽 반쪽 위로 줄이고
+    /// 왼쪽 반쪽 위는 비운다. 후보 3칸·divider·스크롤 규칙은 줄어든 폭 안에서 그대로 쓴다
+    func updateSplitLayout(_ usesSplitLayout: Bool) {
+        guard usesSplitLayout == fullWidthLeadingConstraint.isActive else { return }
+        if usesSplitLayout {
+            fullWidthLeadingConstraint.isActive = false
+            rightHalfWidthConstraint.isActive = true
+        } else {
+            rightHalfWidthConstraint.isActive = false
+            fullWidthLeadingConstraint.isActive = true
+        }
+        setNeedsLayout()
+    }
 }
 
 // MARK: - Private Methods

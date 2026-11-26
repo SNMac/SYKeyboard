@@ -23,6 +23,8 @@ final public class KeyboardView: UIInputView {
 
     /// 사용자가 설정한 한 손 키보드 너비
     private var configuredOneHandedWidth = CGFloat(UserDefaultsManager.shared.oneHandedKeyboardWidth)
+    /// 분할 조건(iPhone Duo를 반쯤 펼친 가로) 충족 여부. 한 손 키보드가 접히는 선을 넘지 않게 할 때 쓴다
+    private var isSplitConditionMet = false
     
     // MARK: - UI Components
     
@@ -175,6 +177,23 @@ final public class KeyboardView: UIInputView {
         rightChevronButton.isHidden = mode != .left
     }
 
+    /// 분할 자판 여부와 분할 조건을 적용한다.
+    ///
+    /// 분할 여부는 `KeyboardSplitLayoutPolicy`가 정한다. 분할 조건은 한 손 모드에서 분할하지 않을 때도
+    /// 한 손 키보드 폭을 접히는 선 안쪽으로 제한하는 데 쓴다
+    func updateSplitLayout(usesSplitLayout: Bool, isSplitConditionMet: Bool) {
+        let layoutViews: [BaseKeyboardLayoutProvider] = primaryKeyboardViews
+        + [symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView]
+        layoutViews.forEach { $0.updateSplitLayout(usesSplitLayout) }
+        suggestionBarView.updateSplitLayout(usesSplitLayout)
+
+        if self.isSplitConditionMet != isSplitConditionMet {
+            self.isSplitConditionMet = isSplitConditionMet
+            updateKeyboardLayoutWidthConstraint()
+        }
+        setNeedsLayout()
+    }
+
     /// 키 영역 여백에 safe area를 더한다. 프레임 여백(위아래 반씩)은 그대로 두고 받은 만큼 안쪽으로 들인다.
     /// 어느 safe area를 더할지는 `KeyboardSafeAreaPolicy`가 정한다
     func updateKeyboardHStackSafeAreaMargins(_ insets: UIEdgeInsets) {
@@ -262,7 +281,8 @@ private extension KeyboardView {
         // 하위 레이아웃 순서상 이 시점에 bounds가 비어 있을 수 있어 자기 폭을 사용한다
         let minWidth = KeyboardPresentationStatePolicy.oneHandedKeyboardMinimumWidth(
             configuredWidth: configuredOneHandedWidth,
-            availableWidth: self.bounds.width
+            availableWidth: self.bounds.width,
+            isSplitConditionMet: isSplitConditionMet
         )
         guard keyboardLayoutWidthConstraint.constant != minWidth else { return }
         keyboardLayoutWidthConstraint.constant = minWidth

@@ -19,7 +19,21 @@ struct OneHandedKeyboardWidthPolicyTests {
     func test최소폭_가용폭범위로제한(configuredWidth: Int, availableWidth: Int, expected: Int) {
         let minWidth = KeyboardPresentationStatePolicy.oneHandedKeyboardMinimumWidth(
             configuredWidth: CGFloat(configuredWidth),
-            availableWidth: CGFloat(availableWidth)
+            availableWidth: CGFloat(availableWidth),
+            isSplitConditionMet: false
+        )
+
+        #expect(minWidth == CGFloat(expected))
+    }
+
+    // 안쪽 화면 가로(801)는 접히는 선까지 400.5라 설정 범위(300~340)에서는 걸리지 않는다 / 경계 / 접히는 선을 넘는 폭
+    @Test("분할 조건에서는 가장자리에서 접히는 선(가용 폭의 절반)까지로 제한",
+          arguments: [(340, 801, 340), (400, 800, 400), (420, 800, 400)])
+    func test최소폭_분할조건_접히는선까지(configuredWidth: Int, availableWidth: Int, expected: Int) {
+        let minWidth = KeyboardPresentationStatePolicy.oneHandedKeyboardMinimumWidth(
+            configuredWidth: CGFloat(configuredWidth),
+            availableWidth: CGFloat(availableWidth),
+            isSplitConditionMet: true
         )
 
         #expect(minWidth == CGFloat(expected))

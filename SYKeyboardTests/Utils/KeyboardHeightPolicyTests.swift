@@ -212,4 +212,65 @@ struct KeyboardHeightPolicyTests {
         #expect(hidden.keyboardViewHeight == 223)
         #expect(hidden.keyboardHStackViewHeight == 223)
     }
+
+    // MARK: - 시스템이 늘린 키보드 높이
+
+    // 요청 284(키 영역 240)에서 시스템이 321로 키운 iPhone Duo 반쯤 펼친 세로 / 시스템이 요청보다 줄인 경우
+    @Test("안쪽 화면(regular×regular)에서 높이가 안정되면 시스템이 늘린 만큼만 키 영역에 더함",
+          arguments: [(321.0, 277.0), (284.0, 240.0), (250.0, 240.0)])
+    func test키영역높이_안쪽화면_안정(actualKeyboardHeight: Double, expected: Double) {
+        let keyAreaHeight = KeyboardHeightPolicy.keyAreaHeight(
+            currentKeyAreaHeight: 240,
+            requestedKeyAreaHeight: 240,
+            requestedKeyboardHeight: 284,
+            actualKeyboardHeight: CGFloat(actualKeyboardHeight),
+            isHeightSettled: true,
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .regular
+        )
+
+        #expect(keyAreaHeight == CGFloat(expected))
+    }
+
+    // 올라오는 동안(요청 높이 그대로) / 다 채운 뒤 내려가는 동안(늘어난 높이 그대로)
+    @Test("안쪽 화면에서 높이가 안정되지 않았으면 시스템이 높이를 바꿔도 지금 키 영역 높이 그대로",
+          arguments: [240.0, 277.0])
+    func test키영역높이_안쪽화면_안정전_유지(currentKeyAreaHeight: Double) {
+        let keyAreaHeight = KeyboardHeightPolicy.keyAreaHeight(
+            currentKeyAreaHeight: CGFloat(currentKeyAreaHeight),
+            requestedKeyAreaHeight: 240,
+            requestedKeyboardHeight: 284,
+            actualKeyboardHeight: 600,
+            isHeightSettled: false,
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .regular
+        )
+
+        #expect(keyAreaHeight == CGFloat(currentKeyAreaHeight))
+    }
+
+    // 일반 iPhone 세로·가로 / 바깥 화면. 안정 여부와 관계없다
+    @Test("안쪽 화면이 아니면 시스템이 키워도 요청한 키 영역 높이 그대로",
+          arguments: [
+            (true, UIUserInterfaceSizeClass.compact, UIUserInterfaceSizeClass.regular),
+            (true, .regular, .compact),
+            (false, .compact, .regular)
+          ])
+    func test키영역높이_요청그대로(
+        isHeightSettled: Bool,
+        horizontalSizeClass: UIUserInterfaceSizeClass,
+        verticalSizeClass: UIUserInterfaceSizeClass
+    ) {
+        let keyAreaHeight = KeyboardHeightPolicy.keyAreaHeight(
+            currentKeyAreaHeight: 277,
+            requestedKeyAreaHeight: 240,
+            requestedKeyboardHeight: 284,
+            actualKeyboardHeight: 600,
+            isHeightSettled: isHeightSettled,
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        )
+
+        #expect(keyAreaHeight == 240)
+    }
 }

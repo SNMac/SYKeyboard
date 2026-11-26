@@ -182,9 +182,10 @@ struct KeyboardNumberRowLayoutTests {
             view.isShifted = isShifted
             view.layoutIfNeeded()
 
+            // 분할 자판에서만 보이는 경계 키 복제본(G·V)은 평소 숨겨져 있으므로 뺀다
             let labeledButtons = view.totalTextInterableButtonList
                 .compactMap { $0 as? PrimaryKeyButton }
-                .filter { !($0.secondaryKeyLabel.text ?? "").isEmpty }
+                .filter { !$0.isHidden && !($0.secondaryKeyLabel.text ?? "").isEmpty }
             #expect(labeledButtons.count == 26)
 
             for button in labeledButtons {
