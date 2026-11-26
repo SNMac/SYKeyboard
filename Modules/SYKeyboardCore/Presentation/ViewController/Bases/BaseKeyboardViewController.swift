@@ -211,6 +211,21 @@ open class BaseKeyboardViewController: UIInputViewController {
 
     // MARK: - UI Components
 
+    /// VC의 루트 뷰. `keyboardView`와 전체 접근 안내는 처음 나타날 때 붙인다(`attachKeyboardViewIfNeeded()`)
+    ///
+    /// 화면에 나타나기 전에 호스트와 연결이 끊긴 키보드 VC는, 루트 뷰에 내용이 붙어 있으면 UIKit이 해제하지 않는다.
+    /// 이런 VC가 쌓이면 확장이 메모리 한도를 넘어 종료되고 시스템 키보드로 바뀌므로 첫 표시 전에는 루트 뷰를 비워 둔다(#216).
+    /// 코드로 만든 `UIInputView`는 붙인 뷰째 해제되지 않고(#39) 일반 `UIView`로는 키보드가 뜨지 않으므로 XIB에서 불러온다
+    private lazy var rootInputView: UIInputView = {
+        let nibName = "KeyboardRootView"
+        let nib = UINib(nibName: nibName, bundle: SYKBDAssets.bundle)
+
+        guard let view = nib.instantiate(withOwner: nil, options: nil).first as? UIInputView else {
+            fatalError("bundle로부터 \(nibName)를 불러오는 데에 실패했습니다.")
+        }
+
+        return view
+    }()
     private lazy var keyboardView: KeyboardView = {
         return KeyboardView.loadFromNib(primaryKeyboardViews: primaryKeyboardViews)
     }()
@@ -320,7 +335,9 @@ open class BaseKeyboardViewController: UIInputViewController {
         let state = performanceSignposter.beginInterval("KeyboardLoadView")
         defer { performanceSignposter.endInterval("KeyboardLoadView", state) }
 
-        self.view = keyboardView
+        // 키보드 뷰는 지금 만들되 루트 뷰에는 처음 나타날 때 붙인다(`rootInputView` 참고)
+        _ = keyboardView
+        self.view = rootInputView
     }
 
     open override func viewDidLoad() {
@@ -354,15 +371,6 @@ open class BaseKeyboardViewController: UIInputViewController {
 
         updateSuggestionBarHidden()
         updateEdgeTouchSystemGesturePolicy()
-
-        // 키보드 뷰 위에 덮어야 하므로 마지막에 올린다. 앱 미리보기에서는 표시하지 않는다
-        if !BaseKeyboardViewController.isPreview, needToShowFullAccessGuide {
-            requestFullAccessOverlayView.install(
-                in: view,
-                onClose: { [weak self] in self?.keyboardExtensionLocalStateStore.isClosed = true },
-                onOpenSettings: { [weak self] url in self?.openURLThroughResponderChain(url) }
-            )
-        }
     }
 
     open override func viewWillAppear(_ animated: Bool) {
@@ -371,6 +379,7 @@ open class BaseKeyboardViewController: UIInputViewController {
 
         super.viewWillAppear(animated)
         logger.debug("viewWillAppear")
+        attachKeyboardViewIfNeeded()
         if !BaseKeyboardViewController.isPreview { setKeyboardHeight() }
         updateSplitLayout()
         clipboardHistoryCoordinator.synchronizeIfNeeded()
@@ -1054,6 +1063,29 @@ private extension BaseKeyboardViewController {
         setSwitchButtonAction()
         setExclusiveButtonAction()
         setChevronButtonAction()
+    }
+
+    /// 처음 나타날 때 `keyboardView`와 전체 접근 안내를 루트 뷰에 붙인다. 그 전에 붙이면 안 되는 이유는 `rootInputView` 참고
+    func attachKeyboardViewIfNeeded() {
+        guard keyboardView.superview == nil else { return }
+
+        keyboardView.translatesAutoresizingMaskIntoConstraints = false
+        rootInputView.addSubview(keyboardView)
+        NSLayoutConstraint.activate([
+            keyboardView.topAnchor.constraint(equalTo: rootInputView.topAnchor),
+            keyboardView.leadingAnchor.constraint(equalTo: rootInputView.leadingAnchor),
+            keyboardView.trailingAnchor.constraint(equalTo: rootInputView.trailingAnchor),
+            keyboardView.bottomAnchor.constraint(equalTo: rootInputView.bottomAnchor)
+        ])
+
+        // 키보드 뷰 위에 덮어야 하므로 그 뒤에 올린다. 앱 미리보기에서는 표시하지 않는다
+        if !BaseKeyboardViewController.isPreview, needToShowFullAccessGuide {
+            requestFullAccessOverlayView.install(
+                in: rootInputView,
+                onClose: { [weak self] in self?.keyboardExtensionLocalStateStore.isClosed = true },
+                onOpenSettings: { [weak self] url in self?.openURLThroughResponderChain(url) }
+            )
+        }
     }
 
     func setCursorDragOverlays() {

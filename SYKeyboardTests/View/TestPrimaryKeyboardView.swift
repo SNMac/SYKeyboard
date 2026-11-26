@@ -66,6 +66,17 @@ final class TestPrimaryKeyboardView: StandardKeyboardView, PrimaryKeyboardRepres
         self.isShifted = isShifted
     }
 
+    /// 이 자판이 들어 있는 `KeyboardView`. VC는 키보드 뷰를 private으로 갖고 첫 표시 때에야 루트 뷰에 붙이므로(#216)
+    /// 테스트는 자판에서 위로 올라가 찾는다. VC가 뷰를 불러오기 전에는 nil이다
+    var enclosingKeyboardView: KeyboardView? {
+        var view = superview
+        while let current = view {
+            if let keyboardView = current as? KeyboardView { return keyboardView }
+            view = current.superview
+        }
+        return nil
+    }
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

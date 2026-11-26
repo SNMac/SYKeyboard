@@ -213,9 +213,9 @@ private final class TestDeleteUndoViewController: BaseKeyboardViewController {
         proxy
     }
 
-    /// `loadView`가 `view`에 넣는 `KeyboardView`의 후보 바. VC의 `suggestionBarView`는 private이라 뷰 계층으로 얻는다
+    /// 자판이 들어 있는 `KeyboardView`의 후보 바. VC의 `suggestionBarView`는 private이라 뷰 계층으로 얻는다
     var suggestionBar: SuggestionBarView {
-        (view as! KeyboardView).suggestionBarView
+        primaryView.enclosingKeyboardView!.suggestionBarView
     }
 
     init() {
