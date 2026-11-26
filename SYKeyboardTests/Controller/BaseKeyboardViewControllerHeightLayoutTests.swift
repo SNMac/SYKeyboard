@@ -28,9 +28,8 @@ struct BaseKeyboardViewControllerHeightLayoutTests {
         window.addSubview(controller.view)
         // 확장에서는 시스템이 부르는 콜백이다. 키보드 뷰는 여기서 루트 뷰에 붙고 높이 제약도 처음 걸린다
         controller.viewWillAppear(false)
-        let keyboardView = controller.view.subviews.lazy.compactMap { $0 as? KeyboardView }.first
 
-        return (try #require(keyboardView), window, controller)
+        return (try #require(controller.primaryView.enclosingKeyboardView), window, controller)
     }
 
     /// VC가 키 영역에 건 높이(요청 높이에서 자동완성 바를 뺀 값)
@@ -50,9 +49,11 @@ struct BaseKeyboardViewControllerHeightLayoutTests {
     }
 
     private func frames(in keyboardView: KeyboardView, height: CGFloat) -> (bar: CGRect, keys: CGRect) {
-        // 시스템은 VC의 루트 뷰 크기를 정하고, 키보드 뷰는 루트 뷰 네 변에 붙어 따라간다
+        // 시스템은 VC의 루트 뷰 크기를 정하고, 키보드 뷰는 루트 뷰 네 변에 붙어 따라간다.
+        // 크기가 같아도 루트를 다시 배치해야 `viewDidLayoutSubviews`의 키 영역 높이 갱신을 거친다
         let rootView = keyboardView.superview ?? keyboardView
         rootView.frame = CGRect(x: 0, y: 0, width: Self.width, height: height)
+        rootView.setNeedsLayout()
         rootView.layoutIfNeeded()
         let bar = keyboardView.suggestionBarView
         let keys = keyboardView.keyboardHStackView

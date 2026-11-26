@@ -180,6 +180,8 @@ struct BaseKeyboardViewControllerDeleteUndoBehaviorTests {
             let controller = TestDeleteUndoViewController()
             let window = UIWindow(frame: UIScreen.main.bounds)
             window.addSubview(controller.view)
+            // 키보드 뷰·힌지 interaction·전체 접근 안내는 첫 표시 때 루트에 붙으므로 그 상태까지 만든다
+            controller.viewWillAppear(false)
             let deleteButton = controller.primaryView.deleteButton
             let gesture = makeGestureController()
 
