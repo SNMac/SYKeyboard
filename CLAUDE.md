@@ -398,6 +398,16 @@ VC와 Coordinator 4개의 횟수가 N으로 같아야 한다. VC 줄은 `BaseKey
 누수 0건 확인은 실기기 Instruments로 하고, 시뮬레이터에서는 위 `deinit` 횟수 일치를 근거로 적는다.
 단위 테스트에서 `UIWindow`에 올렸던 VC는 참조를 놓은 뒤 `RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.2))`를 돌려야 해제된다.
 
+**키보드를 내리는 경로만으로는 부족하다. 나타나기 전에 끊기는 경로도 확인한다(#216).** 화면에 나타나기 전에 호스트와
+연결이 끊긴 키보드 VC는, 루트 뷰(`view`)에 하위 뷰가 붙어 있으면 UIKit이 해제하지 않는다(빈 `UIInputViewController`도 같음).
+그래서 `BaseKeyboardViewController`의 루트 뷰는 XIB의 빈 `UIInputView`이고, `keyboardView`와 전체 접근 안내는 첫
+`viewWillAppear`에서 붙인다. **`viewDidLoad` 등 첫 표시 전 경로에서 `view`에 뷰를 붙이지 않는다.** 루트를 코드로 만든
+`UIInputView`로 바꾸면 붙인 뷰째 해제되지 않고(#39), 일반 `UIView`로 바꾸면 키보드가 뜨지 않는다.
+확인은 메시지 작성 화면을 백그라운드에 둔 채 `sms:010`으로 다시 불러온 뒤, extension 로그의 UIKit `ViewServices` 줄
+(`Received request to create view controller`, `Received request to prepare operator for disconnection`,
+`Initiating deallocation for operator`)을 operator 주소로 짝지어 끊긴 VC가 모두 해제됐는지 본다. 이 줄은 Default 수준이라
+`log show`에도 남는다.
+
 #### 호스트 앱이 뜨지도 않고 테스트가 매달리는 경우
 
 위 붙여넣기 알림과 증상이 비슷하지만 원인이 다르다. **알림 없이** CoreSimulator/`testmanagerd`가
