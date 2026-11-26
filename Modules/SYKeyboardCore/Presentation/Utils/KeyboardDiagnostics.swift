@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import os
 #if DEBUG
 import UIKit
 #endif
@@ -23,8 +24,15 @@ public enum KeyboardDiagnostics {
     /// 확장 타깃에서 Crashlytics 같은 리포터로 연결한다
     public static var record: ((String) -> Void)?
 
+    /// 리포트에 마지막 값만 남는 키-값 기록. 확장 타깃에서 Crashlytics custom key로 연결한다
+    public static var recordValue: ((_ value: Any, _ key: String) -> Void)?
+
     static func log(_ message: String) {
         record?(message)
+    }
+
+    static func setValue(_ value: Any, forKey key: String) {
+        recordValue?(value, key)
     }
 
     /// 반복 횟수를 대략적인 구간 문자열로 바꾼다.
@@ -40,6 +48,47 @@ public enum KeyboardDiagnostics {
         case 50..<200: return "50-199"
         default: return "200+"
         }
+    }
+}
+
+// MARK: - 누수·메모리 기록
+
+extension KeyboardDiagnostics {
+
+    /// 리포트에 남기는 custom key 이름
+    enum ValueKey {
+        static let liveControllerCount = "live_keyboard_vcs"
+        static let memoryFootprintMB = "memory_footprint_mb"
+    }
+
+    /// 지금 살아 있는 키보드 VC 수. 키보드를 다시 띄울 때마다 1이 아니면 앞의 VC가 해제되지 않은 것이다
+    private static let liveControllers = OSAllocatedUnfairLock(initialState: 0)
+
+    static var liveControllerCount: Int {
+        liveControllers.withLock { $0 }
+    }
+
+    static func controllerDidInit() {
+        liveControllers.withLock { $0 += 1 }
+    }
+
+    static func controllerDidDeinit() {
+        liveControllers.withLock { $0 -= 1 }
+    }
+
+    /// 프로세스의 물리 메모리 사용량(MB). jetsam 한도와 같은 기준인 `phys_footprint`를 쓴다
+    static func memoryFootprintMB() -> Int? {
+        var info = task_vm_info_data_t()
+        var count = mach_msg_type_number_t(
+            MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<integer_t>.size
+        )
+        let result = withUnsafeMutablePointer(to: &info) {
+            $0.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
+                task_info(mach_task_self_, task_flavor_t(TASK_VM_INFO), $0, &count)
+            }
+        }
+        guard result == KERN_SUCCESS else { return nil }
+        return Int(info.phys_footprint / 1_048_576)
     }
 }
 

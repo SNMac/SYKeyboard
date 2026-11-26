@@ -85,5 +85,8 @@ private extension HangeulEnglishKeyboardViewController {
         KeyboardDiagnostics.record = { message in
             Crashlytics.crashlytics().log(message)
         }
+        KeyboardDiagnostics.recordValue = { value, key in
+            Crashlytics.crashlytics().setCustomValue(value, forKey: key)
+        }
     }
 }

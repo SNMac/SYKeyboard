@@ -288,6 +288,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
         self.suggestionController = SuggestionController()
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+        KeyboardDiagnostics.controllerDidInit()
     }
 
     /// - Parameters:
@@ -296,6 +297,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     public init(language: String, nGramLanguage: String? = nil) {
         self.suggestionController = SuggestionController(language: language, nGramLanguage: nGramLanguage)
         super.init(nibName: nil, bundle: nil)
+        KeyboardDiagnostics.controllerDidInit()
     }
 
     required public init?(coder: NSCoder) {
@@ -307,6 +309,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     }
 
     deinit {
+        KeyboardDiagnostics.controllerDidDeinit()
         logger.debug("\(String(describing: type(of: self))) deinit")
     }
 
@@ -379,6 +382,17 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     open override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
+        // 해제 전 상태를 남겨야 경고 시점에 VC가 쌓여 있었는지 알 수 있다
+        let liveControllerCount = KeyboardDiagnostics.liveControllerCount
+        let footprint = KeyboardDiagnostics.memoryFootprintMB()
+        KeyboardDiagnostics.log(
+            "memory warning vc=\(Unmanaged.passUnretained(self).toOpaque())"
+            + " liveVCs=\(liveControllerCount) footprintMB=\(footprint.map(String.init) ?? "nil")"
+        )
+        KeyboardDiagnostics.setValue(liveControllerCount, forKey: KeyboardDiagnostics.ValueKey.liveControllerCount)
+        if let footprint {
+            KeyboardDiagnostics.setValue(footprint, forKey: KeyboardDiagnostics.ValueKey.memoryFootprintMB)
+        }
         // 언어별로 캐시해 둔 예측 엔진 중 지금 쓰지 않는 것부터 버린다
         suggestionController.releaseInactiveLanguageEngines()
         // 클립보드 패널 썸네일은 파일에서 다시 읽을 수 있다
@@ -391,7 +405,9 @@ open class BaseKeyboardViewController: UIInputViewController {
         defer { performanceSignposter.endInterval("KeyboardViewDidAppear", state) }
 
         super.viewDidAppear(animated)
-        KeyboardDiagnostics.log("keyboard appeared")
+        let liveControllerCount = KeyboardDiagnostics.liveControllerCount
+        KeyboardDiagnostics.log("keyboard appeared liveVCs=\(liveControllerCount)")
+        KeyboardDiagnostics.setValue(liveControllerCount, forKey: KeyboardDiagnostics.ValueKey.liveControllerCount)
         updateEdgeTouchSystemGesturePolicy()
         // `viewWillAppear`에서는 window가 아직 없어 화면 방향을 모를 수 있다
         updateSplitLayout()
