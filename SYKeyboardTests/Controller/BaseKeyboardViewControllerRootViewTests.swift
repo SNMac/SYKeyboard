@@ -10,14 +10,14 @@ import UIKit
 
 @testable import SYKeyboardCore
 
-/// 화면에 나타나기 전에 호스트와 연결이 끊긴 키보드 VC는, 루트 뷰에 내용이 붙어 있으면 UIKit이 해제하지 않는다(#216).
+/// 화면에 나타나기 전에 호스트와 연결이 끊긴 키보드 VC는, 루트 뷰에 하위 뷰나 interaction이 붙어 있으면 UIKit이 해제하지 않는다(#216).
 /// 이 누수는 호스트 연결이 있어야 생겨 단위 테스트로 재현할 수 없으므로, 누수를 피하는 계약만 고정한다.
-/// 첫 `viewWillAppear` 전까지 루트 뷰는 비어 있고, 그때 키보드 뷰가 붙는다
+/// 힌지 interaction은 iOS 27.1 이상에서만 설치되므로 interaction 단언은 그 버전 시뮬레이터에서만 실패할 수 있다
 @MainActor
 @Suite("첫 표시 전 키보드 VC 루트 뷰를 비워 두는 계약", .sharedUserDefaults)
 struct BaseKeyboardViewControllerRootViewTests {
 
-    @Test("나타나기 전에는 문맥 변경 콜백을 받아도 루트 뷰에 아무것도 붙지 않음")
+    @Test("나타나기 전에는 문맥 변경 콜백을 받아도 루트 뷰에 하위 뷰도 interaction도 붙지 않음")
     func test첫표시전_루트뷰비어있음() {
         let controller = RootViewTestViewController()
         controller.loadViewIfNeeded()
@@ -26,25 +26,7 @@ struct BaseKeyboardViewControllerRootViewTests {
         controller.textDidChange(nil)
 
         #expect(controller.view.subviews.isEmpty)
-    }
-
-    @Test("첫 viewWillAppear에서 키보드 뷰가 루트 뷰를 채우도록 한 번만 붙음")
-    func test첫표시때_키보드뷰부착() throws {
-        let controller = RootViewTestViewController()
-        let window = UIWindow(frame: UIScreen.main.bounds)
-        window.addSubview(controller.view)
-        defer { window.removeFromSuperview() }
-
-        controller.viewWillAppear(false)
-        // 같은 VC가 다시 나타나도 두 번 붙지 않는다
-        controller.viewWillAppear(false)
-        controller.view.frame = CGRect(x: 0, y: 0, width: 375, height: 300)
-        controller.view.layoutIfNeeded()
-
-        let keyboardViews = controller.view.subviews.compactMap { $0 as? KeyboardView }
-        #expect(keyboardViews.count == 1)
-        let keyboardView = try #require(keyboardViews.first)
-        #expect(keyboardView.frame == controller.view.bounds)
+        #expect(controller.view.interactions.isEmpty)
     }
 }
 

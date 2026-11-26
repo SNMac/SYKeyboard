@@ -211,9 +211,9 @@ open class BaseKeyboardViewController: UIInputViewController {
 
     // MARK: - UI Components
 
-    /// VC의 루트 뷰. `keyboardView`와 전체 접근 안내는 처음 나타날 때 붙인다(`attachKeyboardViewIfNeeded()`)
+    /// VC의 루트 뷰. `keyboardView`, 힌지 interaction, 전체 접근 안내는 처음 나타날 때 붙인다(`attachKeyboardViewIfNeeded()`)
     ///
-    /// 화면에 나타나기 전에 호스트와 연결이 끊긴 키보드 VC는, 루트 뷰에 내용이 붙어 있으면 UIKit이 해제하지 않는다.
+    /// 화면에 나타나기 전에 호스트와 연결이 끊긴 키보드 VC는, 루트 뷰에 하위 뷰나 interaction이 붙어 있으면 UIKit이 해제하지 않는다.
     /// 이런 VC가 쌓이면 확장이 메모리 한도를 넘어 종료되고 시스템 키보드로 바뀌므로 첫 표시 전에는 루트 뷰를 비워 둔다(#216).
     /// 코드로 만든 `UIInputView`는 붙인 뷰째 해제되지 않고(#39) 일반 `UIView`로는 키보드가 뜨지 않으므로 XIB에서 불러온다
     private lazy var rootInputView: UIInputView = {
@@ -356,7 +356,6 @@ open class BaseKeyboardViewController: UIInputViewController {
         if BaseKeyboardViewController.isPreview { updateReturnButtonType() }
 
         if keyboardSettingsManager.isOneHandedKeyboardEnabled { updateOneHandModekeyboard() }
-        installHingeInteraction()
 
         // 사용자 설정을 SuggestionController에 전달 — 엔진 생성은 첫 표시 이후로 지연
         suggestionController.isTextReplacementEnabled = keyboardSettingsManager.isTextReplacementEnabled
@@ -1065,7 +1064,7 @@ private extension BaseKeyboardViewController {
         setChevronButtonAction()
     }
 
-    /// 처음 나타날 때 `keyboardView`와 전체 접근 안내를 루트 뷰에 붙인다. 그 전에 붙이면 안 되는 이유는 `rootInputView` 참고
+    /// 처음 나타날 때 `keyboardView`, 힌지 interaction, 전체 접근 안내를 루트 뷰에 붙인다. 그 전에 붙이면 안 되는 이유는 `rootInputView` 참고
     func attachKeyboardViewIfNeeded() {
         guard keyboardView.superview == nil else { return }
 
@@ -1077,6 +1076,9 @@ private extension BaseKeyboardViewController {
             keyboardView.trailingAnchor.constraint(equalTo: rootInputView.trailingAnchor),
             keyboardView.bottomAnchor.constraint(equalTo: rootInputView.bottomAnchor)
         ])
+        // 루트 뷰에 거는 interaction도 내용으로 쳐서 나타나기 전에 끊긴 VC가 해제되지 않는다(iOS 27.2 시뮬레이터 확인).
+        // `viewWillAppear`가 이 함수 다음에 `updateSplitLayout()`을 부른다
+        installHingeInteraction()
 
         // 키보드 뷰 위에 덮어야 하므로 그 뒤에 올린다. 앱 미리보기에서는 표시하지 않는다
         if !BaseKeyboardViewController.isPreview, needToShowFullAccessGuide {
